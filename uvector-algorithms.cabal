@@ -1,0 +1,31 @@
+Name:              uvector-algorithms
+Version:           0.1
+License:           BSD3
+License-File:      LICENSE
+Author:            Dan Doel
+Maintainer:        Dan Doel <dan.doel@gmail.com>
+Homepage:          http://code.haskell.org/~dolio/
+Category:          Data
+Synopsis:          Efficient algorithms for uvector unboxed arrays
+Description:       Efficient algorithms for uvector unboxed arrays
+                   be sure to compile with -O2, and -fvia-C -optc-O3 is
+                   recommended.
+Build-Type:        Simple
+Cabal-Version:     >= 1.2
+
+Library
+    Build-Depends: base, uvector
+
+    Exposed-Modules:
+        Data.Array.Vector.Algorithms.Common
+        Data.Array.Vector.Algorithms.Mutable.Optimal
+        Data.Array.Vector.Algorithms.Mutable.Insertion
+
+    Extensions:
+        BangPatterns,
+        TypeOperators
+
+    GHC-Options:
+        -O2
+        -fvia-C -optc-O3
+        -funbox-strict-fields
