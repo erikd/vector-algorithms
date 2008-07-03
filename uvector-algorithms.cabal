@@ -20,6 +20,8 @@ Library
         Data.Array.Vector.Algorithms.Common
         Data.Array.Vector.Algorithms.Mutable.Optimal
         Data.Array.Vector.Algorithms.Mutable.Insertion
+        Data.Array.Vector.Algorithms.Mutable.Intro
+        Data.Array.Vector.Algorithms.Mutable.TriHeap
 
     Extensions:
         BangPatterns,
