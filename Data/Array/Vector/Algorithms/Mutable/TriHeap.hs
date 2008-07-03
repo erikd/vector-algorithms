@@ -20,6 +20,14 @@ module Data.Array.Vector.Algorithms.Mutable.TriHeap
          sort
        , sortBy
        , sortByBounds
+         -- * Selection
+       , select
+       , selectBy
+       , selectByBounds
+         -- * Partial sorts
+       , partialSort
+       , partialSortBy
+       , partialSortByBounds
          -- * Heap operations
        , heapify
        , pop
@@ -54,6 +62,56 @@ sortByBounds cmp a l u
   | otherwise = heapify cmp a l u >> sortHeap cmp a l (l+4) u >> O.sort4ByOffset cmp a l
  where len = u - l
 {-# INLINE sortByBounds #-}
+
+-- | Moves the lowest k elements to the front of the array.
+-- The elements will be in no particular order.
+select :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+select = selectBy compare
+{-# INLINE select #-}
+
+-- | Moves the 'lowest' (as defined by the comparison) k elements
+-- to the front of the array. The elements will be in no particular
+-- order.
+selectBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
+selectBy cmp a k = selectByBounds cmp a k 0 (lengthMU a)
+{-# INLINE selectBy #-}
+
+-- | Moves the 'lowest' k elements in the portion [l,u) of the
+-- array into the positions [l,k+l). The elements will be in
+-- no particular order.
+selectByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+selectByBounds cmp a k l u = heapify cmp a l (l + k) >> go l (l + k) u
+ where
+ go l m u
+   | u < m      = return ()
+   | otherwise  = do el <- readMU a l
+                     eu <- readMU a u
+                     case cmp eu el of
+                       LT -> popTo cmp a l m u
+                       _  -> return ()
+                     go l m (u - 1)
+{-# INLINE selectByBounds #-}
+
+-- | Moves the lowest k elements to the front of the array, sorted.
+partialSort :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+partialSort = partialSortBy compare
+{-# INLINE partialSort #-}
+
+-- | Moves the lowest k elements (as defined by the comparison) to
+-- the front of the array, sorted.
+partialSortBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
+partialSortBy cmp a k = partialSortByBounds cmp a k 0 (lengthMU a)
+{-# INLINE partialSortBy #-}
+
+-- | Moves the lowest k elements in the portion [l,u) of the array
+-- into positions [l,k+l), sorted.
+partialSortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+partialSortByBounds cmp a k l u = do selectByBounds cmp a k l u
+                                     sortHeap cmp a l (l + 4) (l + k)
+                                     O.sort4ByOffset cmp a l
+                                     -- this technically does extra work for k < 4, but
+                                     -- I'm not sure that's a significant concern.
+{-# INLINE partialSortByBounds #-}
 
 -- | Constructs a heap in a portion of an array [l, u)
 heapify :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> ST s ()
