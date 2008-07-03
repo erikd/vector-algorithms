@@ -10,4 +10,14 @@
 
 module Data.Array.Vector.Algorithms.Common where
 
+import Control.Monad.ST
+
+import Data.Array.Vector
+
 type Comparison e = e -> e -> Ordering
+
+swap :: (UA e) => MUArr e s -> Int -> Int -> ST s ()
+swap arr i j = do ei <- readMU arr i
+                  readMU arr j >>= writeMU arr i
+                  writeMU arr j ei
+{-# INLINE swap #-}
