@@ -33,7 +33,16 @@ module Data.Array.Vector.Algorithms.Mutable.Intro
        ( -- * Sorting
          sort
        , sortBy
-       , sortByBounds ) where
+       , sortByBounds 
+         -- * Selecting
+       , select
+       , selectBy
+       , selectByBounds
+         -- * Partial sorting
+       , partialSort
+       , partialSortBy
+       , partialSortByBounds
+       ) where
 
 import Control.Monad
 import Control.Monad.ST
@@ -63,9 +72,15 @@ sortByBounds cmp a l u
   | len == 2  = O.sort2ByOffset cmp a l
   | len == 3  = O.sort3ByOffset cmp a l
   | len == 4  = O.sort4ByOffset cmp a l
-  | otherwise = sort (ilg len) l u >> I.sortByBounds cmp a l u
+  | otherwise = introsort cmp a (ilg len) l u
+ where len = u - l
+{-# INLINE sortByBounds #-}
+
+-- Internal version of the introsort loop which allows partial
+-- sort functions to call with a specified bound on iterations.
+introsort :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+introsort cmp a i l u = sort i l u >> I.sortByBounds cmp a l u
  where
- len = u - l
  sort 0 l u = H.sortByBounds cmp a l u
  sort d l u
    | len < threshold = return ()
@@ -78,7 +93,68 @@ sortByBounds cmp a l u
   where
   len = u - l
   c   = (u + l) `div` 2
-{-# INLINE sortByBounds #-}
+{-# INLINE introsort #-}
+
+-- | Moves the least k elements to the front of the array in
+-- no particular order.
+select :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+select = selectBy compare
+{-# INLINE select #-}
+
+-- | Moves the least k elements (as defined by the comparison) to
+-- the front of the array in no particular order.
+selectBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
+selectBy cmp a k = selectByBounds cmp a k 0 (lengthMU a)
+{-# INLINE selectBy #-}
+
+-- | Moves the least k elements in the interval [l,u) to the positions
+-- [l,k+l) in no particular order.
+selectByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+selectByBounds cmp a k l u = go (ilg len) l (l + k) u
+ where
+ len = u - l
+ go 0 l m u = H.selectByBounds cmp a (m - l) l u
+ go n l m u = do O.sort3ByIndex cmp a c l (u-1)
+                 p <- readMU a l
+                 mid <- partitionBy cmp a p (l+1) u
+                 swap a l (mid - 1)
+                 if m > mid
+                   then go (n-1) mid m u
+                   else if m < mid - 1
+                        then go (n-1) l m (mid - 1)
+                        else return ()
+  where c = (u + l) `div` 2
+{-# INLINE selectByBounds #-}
+
+-- | Moves the least k elements to the front of the array, sorted.
+partialSort :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+partialSort = partialSortBy compare
+{-# INLINE partialSort #-}
+
+-- | Moves the least k elements (as defined by the comparison) to
+-- the front of the array, sorted.
+partialSortBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
+partialSortBy cmp a k = partialSortByBounds cmp a k 0 (lengthMU a)
+{-# INLINE partialSortBy #-}
+
+-- | Moves the least k elements in the interval [l,u) to the positions
+-- [l,k+l), sorted.
+partialSortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
+ where
+ len = u - l
+ go 0 l m n = H.partialSortByBounds cmp a (m - l) l u
+ go n l m u = do O.sort3ByIndex cmp a c l (u-1)
+                 p <- readMU a l
+                 mid <- partitionBy cmp a p (l+1) u
+                 swap a l (mid - 1)
+                 case compare m mid of
+                   GT -> do introsort cmp a (n-1) l (mid - 1)
+                            go (n-1) mid m u
+                   EQ -> introsort cmp a (n-1) l m
+                   LT -> go n l m (mid - 1)
+  where c = (u + l) `div` 2
+{-# INLINE partialSortByBounds #-}
 
 partitionBy :: (UA e) => Comparison e -> MUArr e s -> e -> Int -> Int -> ST s Int
 partitionBy cmp a = partUp
