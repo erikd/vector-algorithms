@@ -23,12 +23,14 @@ Library
         Data.Array.Vector.Algorithms.Insertion
         Data.Array.Vector.Algorithms.Intro
         Data.Array.Vector.Algorithms.Merge
+        Data.Array.Vector.Algorithms.Radix
         Data.Array.Vector.Algorithms.TriHeap
 
     Extensions:
         BangPatterns,
         TypeOperators,
-        Rank2Types
+        Rank2Types,
+        ScopedTypeVariables
 
     GHC-Options:
         -O2
