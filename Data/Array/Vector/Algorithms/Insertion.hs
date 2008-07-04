@@ -1,7 +1,7 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Mutable.Insertion
+-- Module      : Data.Array.Vector.Algorithms.Insertion
 -- Copyright   : (c) 2008 Dan Doel
 -- Maintainer  : Dan Doel
 -- Stability   : Experimental
@@ -11,7 +11,7 @@
 -- beneficial for small arrays. It is used to sort small segments of an array
 -- by some of the more heavy-duty, recursive algorithms.
 
-module Data.Array.Vector.Algorithms.Mutable.Insertion
+module Data.Array.Vector.Algorithms.Insertion
        ( sort
        , sortBy
        , sortByBounds
@@ -24,7 +24,7 @@ import Control.Monad.ST
 import Data.Array.Vector
 import Data.Array.Vector.Algorithms.Common
 
-import qualified Data.Array.Vector.Algorithms.Mutable.Optimal as O
+import qualified Data.Array.Vector.Algorithms.Optimal as O
 
 -- | Sorts an entire array using the default comparison for the type
 sort :: (UA e, Ord e) => MUArr e s -> ST s ()

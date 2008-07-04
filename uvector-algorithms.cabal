@@ -18,10 +18,10 @@ Library
 
     Exposed-Modules:
         Data.Array.Vector.Algorithms.Common
-        Data.Array.Vector.Algorithms.Mutable.Optimal
-        Data.Array.Vector.Algorithms.Mutable.Insertion
-        Data.Array.Vector.Algorithms.Mutable.Intro
-        Data.Array.Vector.Algorithms.Mutable.TriHeap
+        Data.Array.Vector.Algorithms.Optimal
+        Data.Array.Vector.Algorithms.Insertion
+        Data.Array.Vector.Algorithms.Intro
+        Data.Array.Vector.Algorithms.TriHeap
 
     Extensions:
         BangPatterns,

@@ -2,7 +2,7 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Mutable.TriHeap
+-- Module      : Data.Array.Vector.Algorithms.TriHeap
 -- Copyright   : (c) 2008 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
@@ -15,7 +15,7 @@
 -- the number of comparisons in a heapsort slightly, and improves locality
 -- (again, slightly) by flattening out the heap.
 
-module Data.Array.Vector.Algorithms.Mutable.TriHeap
+module Data.Array.Vector.Algorithms.TriHeap
        ( -- * Sorting
          sort
        , sortBy
@@ -40,7 +40,7 @@ import Control.Monad.ST
 import Data.Array.Vector
 import Data.Array.Vector.Algorithms.Common
 
-import qualified Data.Array.Vector.Algorithms.Mutable.Optimal as O
+import qualified Data.Array.Vector.Algorithms.Optimal as O
 
 -- | Sorts an entire array using the default ordering.
 sort :: (UA e, Ord e) => MUArr e s -> ST s ()

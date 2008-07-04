@@ -2,7 +2,7 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Mutable.Intro
+-- Module      : Data.Array.Vector.Algorithms.Intro
 -- Copyright   : (c) 2008 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
@@ -29,7 +29,7 @@
 --     sort to maintain O(n lg n) worst case behavior. (This is what makes the
 --     algorithm introsort).
 
-module Data.Array.Vector.Algorithms.Mutable.Intro
+module Data.Array.Vector.Algorithms.Intro
        ( -- * Sorting
          sort
        , sortBy
@@ -51,9 +51,9 @@ import Data.Array.Vector
 import Data.Array.Vector.Algorithms.Common
 import Data.Bits
 
-import qualified Data.Array.Vector.Algorithms.Mutable.Insertion as I
-import qualified Data.Array.Vector.Algorithms.Mutable.Optimal   as O
-import qualified Data.Array.Vector.Algorithms.Mutable.TriHeap   as H
+import qualified Data.Array.Vector.Algorithms.Insertion as I
+import qualified Data.Array.Vector.Algorithms.Optimal   as O
+import qualified Data.Array.Vector.Algorithms.TriHeap   as H
 
 -- | Sorts an entire array using the default ordering.
 sort :: (UA e, Ord e) => MUArr e s -> ST s ()
