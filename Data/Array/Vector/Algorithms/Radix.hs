@@ -32,7 +32,7 @@
 --
 --    > radix k e = (e `shiftR` (k*8)) .&. 256
 
-module Data.Array.Vector.Algorithms.Radix (sort) where
+module Data.Array.Vector.Algorithms.Radix (sort, Radix(..)) where
 
 import Control.Monad
 import Control.Monad.ST
