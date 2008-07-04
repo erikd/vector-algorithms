@@ -18,6 +18,7 @@ Library
 
     Exposed-Modules:
         Data.Array.Vector.Algorithms.Common
+        Data.Array.Vector.Algorithms.Immutable
         Data.Array.Vector.Algorithms.Optimal
         Data.Array.Vector.Algorithms.Insertion
         Data.Array.Vector.Algorithms.Intro
@@ -26,7 +27,8 @@ Library
 
     Extensions:
         BangPatterns,
-        TypeOperators
+        TypeOperators,
+        Rank2Types
 
     GHC-Options:
         -O2
