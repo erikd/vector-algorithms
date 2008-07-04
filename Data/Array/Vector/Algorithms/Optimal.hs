@@ -10,7 +10,7 @@
 -- Optimal sorts for very small array sizes, or for small numbers of
 -- particular indices in a larger array (to be used, for instance, for
 -- sorting a median of 3 values into the lowest position in an array
--- for a media-of-3 quicksort).
+-- for a median-of-3 quicksort).
 
 -- The code herein was adapted from a C algorithm for optimal sorts
 -- of small arrays. The original code was produced for the article

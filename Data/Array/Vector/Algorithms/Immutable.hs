@@ -19,5 +19,6 @@ import Control.Monad.ST
 
 import Data.Array.Vector
 
+-- | Safely applies a mutable array algorithm to an immutable array.
 apply :: (UA e) => (forall s. MUArr e s -> ST s ()) -> UArr e -> UArr e
 apply algo v = newU (lengthU v) (\arr -> copyMU arr 0 v >> algo arr)

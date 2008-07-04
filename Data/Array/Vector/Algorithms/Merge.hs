@@ -22,14 +22,17 @@ import Data.Array.Vector.Algorithms.Common
 import qualified Data.Array.Vector.Algorithms.Optimal   as O
 import qualified Data.Array.Vector.Algorithms.Insertion as I
 
+-- | Sorts an array using the default comparison.
 sort :: (Ord e, UA e) => MUArr e s -> ST s ()
 sort = sortBy compare
 {-# INLINE sort #-}
 
+-- | Sorts an array using a custom comparison.
 sortBy :: (UA e) => Comparison e -> MUArr e s -> ST s ()
 sortBy cmp arr = sortByBounds cmp arr 0 (lengthMU arr)
 {-# INLINE sortBy #-}
 
+-- | Sorts a portion of an array [l,u) using a custom comparison.
 sortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> ST s ()
 sortByBounds cmp arr l u
   | len < 1   = return ()

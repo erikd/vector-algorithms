@@ -18,13 +18,14 @@
 --
 -- Radix sort is not a comparison sort, so it is able to achieve O(n) run
 -- time, though it also uses O(n) auxiliary space. In addition, there is a
--- constant overhead of 2*size*sizeOf(Int) for the sort, so it is not
--- advisable to use this sort for very small arrays.
+-- constant space overhead of 2*size*sizeOf(Int) for the sort, so it is not
+-- advisable to use this sort for large numbers of very small arrays.
 --
 -- A standard example (upon which one could base their own Radix instance)
 -- is Word32:
 --
 --   * We choose to sort on r = 8 bits at a time
+--
 --   * A Word32 has b = 32 bits total
 --
 --   Thus, b/r = 4 passes are required, 2^r = 256 elements are needed in an
