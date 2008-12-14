@@ -23,3 +23,10 @@ swap arr i j = do ei <- readMU arr i
                   readMU arr j >>= writeMU arr i
                   writeMU arr j ei
 {-# INLINE swap #-}
+
+mcopyMU :: (UA e) => MUArr e s -> MUArr e s -> Int -> Int -> Int -> ST s ()
+mcopyMU from to iFrom iTo len = go 0
+ where
+ go n | n < len   = readMU from (iFrom + n) >>= writeMU to (iTo + n) >> go (n+1)
+      | otherwise = return ()
+{-# INLINE mcopyMU #-}

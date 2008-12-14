@@ -181,7 +181,7 @@ sort arr = do
                        prefixLoop 1 0 count prefix
                        moveLoop 0 k src dst prefix
                        go (not swap) dst src count prefix (k+1)
-   | otherwise    = when swap (memcpyMU src dst len)
+   | otherwise    = when swap (mcopyMU src dst 0 0 len)
  zero i a
    | i < size e = writeMU a i 0 >> zero (i+1) a
    | otherwise  = return ()
