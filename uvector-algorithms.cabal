@@ -17,7 +17,6 @@ Library
     Build-Depends: base, uvector
 
     Exposed-Modules:
-        Data.Array.Vector.Algorithms.Common
         Data.Array.Vector.Algorithms.Immutable
         Data.Array.Vector.Algorithms.Optimal
         Data.Array.Vector.Algorithms.Insertion
@@ -25,6 +24,9 @@ Library
         Data.Array.Vector.Algorithms.Merge
         Data.Array.Vector.Algorithms.Radix
         Data.Array.Vector.Algorithms.TriHeap
+
+    Other-Modules:
+        Data.Array.Vector.Algorithms.Common
 
     Extensions:
         BangPatterns,
