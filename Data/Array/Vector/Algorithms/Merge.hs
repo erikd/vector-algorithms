@@ -11,7 +11,12 @@
 -- the entire sorting process to ease the amount of allocation performed in
 -- total. This is a stable sort.
 
-module Data.Array.Vector.Algorithms.Merge (sort, sortBy, sortByBounds) where
+module Data.Array.Vector.Algorithms.Merge
+       ( sort
+       , sortBy
+       , sortByBounds
+       , Comparison
+       ) where
 
 import Control.Monad.ST
 

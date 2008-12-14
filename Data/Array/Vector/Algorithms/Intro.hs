@@ -42,6 +42,7 @@ module Data.Array.Vector.Algorithms.Intro
        , partialSort
        , partialSortBy
        , partialSortByBounds
+       , Comparison
        ) where
 
 import Control.Monad

@@ -32,7 +32,9 @@ module Data.Array.Vector.Algorithms.TriHeap
        , heapify
        , pop
        , popTo
-       , sortHeap ) where
+       , sortHeap
+       , Comparison
+       ) where
 
 import Control.Monad
 import Control.Monad.ST

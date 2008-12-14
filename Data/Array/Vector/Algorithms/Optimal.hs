@@ -28,6 +28,7 @@ module Data.Array.Vector.Algorithms.Optimal
        , sort3ByOffset
        , sort4ByIndex
        , sort4ByOffset
+       , Comparison
        ) where
 
 import Control.Monad.ST

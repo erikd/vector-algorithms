@@ -16,6 +16,7 @@ module Data.Array.Vector.Algorithms.Insertion
        , sortBy
        , sortByBounds
        , sortByBounds'
+       , Comparison
        ) where
 
 
