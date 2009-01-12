@@ -82,7 +82,7 @@ selectBy cmp a k = selectByBounds cmp a k 0 (lengthMU a)
 -- array into the positions [l,k+l). The elements will be in
 -- no particular order.
 selectByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
-selectByBounds cmp a k l u = heapify cmp a l (l + k) >> go l (l + k) u
+selectByBounds cmp a k l u = heapify cmp a l (l + k) >> go l (l + k) (u - 1)
  where
  go l m u
    | u < m      = return ()
