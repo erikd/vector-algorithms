@@ -163,6 +163,15 @@ instance Radix Word64 where
   radix 7 e = fromIntegral ((e `shiftR` 56) .&. 255)
   {-# INLINE radix #-}
 
+instance (Radix i, Radix j) => Radix (i :*: j) where
+  passes ~(i :*: j) = passes i + passes j
+  {-# INLINE passes #-}
+  size   ~(i :*: j) = size i `max` size j
+  {-# INLINE size #-}
+  radix k ~(i :*: j) | k < passes j = radix k j
+                     | otherwise    = radix (k - passes j) i
+  {-# INLINE radix #-}
+
 -- | Sorts an array based on the Radix instance.
 sort :: forall e s. Radix e => MUArr e s -> ST s ()
 sort arr = do
