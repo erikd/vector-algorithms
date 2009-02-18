@@ -14,7 +14,10 @@
 -- elements (but only computing said function once per element), and safely
 -- applying the algorithms on mutable arrays to immutable arrays.
 
-module Data.Array.Vector.Algorithms.Combinators ( apply ) where
+module Data.Array.Vector.Algorithms.Combinators
+       ( apply
+       , schwartzian
+       ) where
 
 import Control.Monad.ST
 
@@ -39,7 +42,7 @@ apply algo v = newU (lengthU v) (\arr -> copyMU arr 0 v >> algo arr)
 -- with the schwartzian transform being more efficient (for certain keys), 
 -- because each key is computed only once.
 schwartzian :: (UA e, UA k, Ord k)
-            => (forall e'. Comparison e' -> MUArr e' s -> ST s ())
+            => (forall e'. (UA e') => Comparison e' -> MUArr e' s -> ST s ())
             -> (e -> k)
             -> MUArr e s
             -> ST s ()
