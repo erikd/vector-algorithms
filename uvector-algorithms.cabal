@@ -17,7 +17,7 @@ Library
     Build-Depends: base, uvector
 
     Exposed-Modules:
-        Data.Array.Vector.Algorithms.Immutable
+        Data.Array.Vector.Algorithms.Combinators
         Data.Array.Vector.Algorithms.Optimal
         Data.Array.Vector.Algorithms.Insertion
         Data.Array.Vector.Algorithms.Intro

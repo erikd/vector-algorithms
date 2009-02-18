@@ -2,18 +2,19 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Immutable
+-- Module      : Data.Array.Vector.Algorithms.Combinators
 -- Copyright   : (c) 2008 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (rank-2 types)
 --
--- The purpose of this module is to apply the algorithms on mutable arrays
--- in other packages to immutable arrays. The idea is to copy the immutable
--- array into a mutable intermediate, perform the algorithm on the mutable
--- array, and freeze it, yielding a new immutable array.
+-- The purpose of this module is to supply various combinators for commonly
+-- used idioms for the algorithms in this package. Examples at the time of
+-- this writing include running an algorithm keyed on some function of the
+-- elements (but only computing said function once per element), and safely
+-- applying the algorithms on mutable arrays to immutable arrays.
 
-module Data.Array.Vector.Algorithms.Immutable ( apply ) where
+module Data.Array.Vector.Algorithms.Combinators ( apply ) where
 
 import Control.Monad.ST
 
