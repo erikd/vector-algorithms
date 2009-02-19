@@ -16,7 +16,8 @@
 
 module Data.Array.Vector.Algorithms.Combinators
        ( apply
-       , schwartzian
+       , usingKeys
+       , usingIxKeys
        ) where
 
 import Control.Monad.ST
@@ -33,20 +34,30 @@ apply algo v = newU (lengthU v) (\arr -> copyMU arr 0 v >> algo arr)
 -- | Uses a function to compute a key for each element which the
 -- algorithm should use in lieu of the actual element. For instance:
 --
--- > schwartzian sortBy f arr
+-- > usingKeys sortBy f arr
 --
 -- should produce the same results as:
 --
 -- > sortBy (comparing f) arr
 --
--- with the schwartzian transform being more efficient (for certain keys), 
--- because each key is computed only once.
-schwartzian :: (UA e, UA k, Ord k)
+-- the difference being that usingKeys computes each key only once
+-- which can be more efficient for expensive key functions.
+usingKeys :: (UA e, UA k, Ord k)
+          => (forall e'. (UA e') => Comparison e' -> MUArr e' s -> ST s ())
+          -> (e -> k)
+          -> MUArr e s
+          -> ST s ()
+usingKeys algo f arr = usingIxKeys algo (const f) arr
+{-# INLINE usingKeys #-}
+
+-- | As usingKeys, only the key function has access to the array index
+-- at which each element is stored.
+usingIxKeys :: (UA e, UA k, Ord k)
             => (forall e'. (UA e') => Comparison e' -> MUArr e' s -> ST s ())
-            -> (e -> k)
+            -> (Int -> e -> k)
             -> MUArr e s
             -> ST s ()
-schwartzian algo f arr = do
+usingIxKeys algo f arr = do
   keys <- newMU (lengthMU arr)
   fill len keys
   algo (comparing fstS) (unsafeZipMU keys arr)
@@ -54,4 +65,5 @@ schwartzian algo f arr = do
  len = lengthMU arr
  fill k keys
    | k < 0     = return ()
-   | otherwise = readMU arr k >>= writeMU keys k . f >> fill (k-1) keys
+   | otherwise = readMU arr k >>= writeMU keys k . f k >> fill (k-1) keys
+{-# INLINE usingIxKeys #-}
