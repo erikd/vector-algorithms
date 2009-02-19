@@ -65,7 +65,7 @@ mergeSortWithBuf cmp arr tmp = loop
 {-# INLINE mergeSortWithBuf #-}
 
 merge :: (UA e) => Comparison e -> MUArr e s -> MUArr e s -> Int -> Int -> Int -> ST s ()
-merge cmp arr tmp l m u = do mcopyMU arr tmp l 0 uTmp
+merge cmp arr tmp l m u = do memcpyOffMU arr tmp l 0 uTmp
                              eTmp <- readMU tmp 0
                              eArr <- readMU arr m
                              loop 0 eTmp m eArr l
@@ -74,7 +74,7 @@ merge cmp arr tmp l m u = do mcopyMU arr tmp l 0 uTmp
  uArr = u
  loop iTmp eTmp iArr eArr iIns
    | iTmp >= uTmp = return ()
-   | iArr >= uArr = mcopyMU tmp arr iTmp iIns (uTmp - iTmp)
+   | iArr >= uArr = memcpyOffMU tmp arr iTmp iIns (uTmp - iTmp)
    | otherwise    = case cmp eArr eTmp of
                       LT -> do writeMU arr iIns eArr
                                eArr <- readMU arr (iArr+1)
