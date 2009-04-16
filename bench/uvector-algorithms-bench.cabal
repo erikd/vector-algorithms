@@ -13,7 +13,7 @@ build-type:             Simple
 cabal-version:          >= 1.2
 
 executable uvec-bench
-  build-depends:        base, mersenne-random, uvector, uvector-algorithms
+  build-depends:        base, mersenne-random, uvector, uvector-algorithms, mtl
 
   ghc-options:          -Wall -O2
   main-is:              Main.hs

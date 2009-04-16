@@ -4,6 +4,7 @@ module Main (main) where
 
 import Control.Monad
 import Control.Monad.ST
+import Control.Monad.Error
 
 import Data.Char
 import Data.Array.Vector
@@ -73,21 +74,21 @@ data Options = O { algos :: [Algorithm], elems :: Int, portion :: Int } deriving
 defaultOptions :: Options
 defaultOptions = O [] 10000 1000
 
-type OptionsT = Options -> Maybe Options
+type OptionsT = Options -> Either String Options
 
 options :: [OptDescr OptionsT]
 options = [ Option ['A'] ["algorithm"] (ReqArg parseAlgo "ALGO") "Specify an algorithm to be run"
           ]
 
-parseAlgo :: String -> Options -> Maybe Options
-parseAlgo "None" o = Just $ o { algos = [] }
-parseAlgo "All"  o = Just $ o { algos = [DoNothing .. RadixSort] }
-parseAlgo s      o = fmap (\v -> o { algos = v : algos o }) $ readMaybe s
+parseAlgo :: String -> Options -> Either String Options
+parseAlgo "None" o = Right $ o { algos = [] }
+parseAlgo "All"  o = Right $ o { algos = [DoNothing .. RadixSort] }
+parseAlgo s      o = fmap (\v -> o { algos = v : algos o }) $ readEither s
 
-readMaybe :: Read a => String -> Maybe a
-readMaybe s = case reads s of
-                [(x,s)] | all isSpace s -> Just x
-                _                       -> Nothing
+readEither :: Read a => String -> Either String a
+readEither s = case reads s of
+  [(x,s)] | all isSpace s -> Right x
+  _                       -> Left $ "Bad parse: " ++ s
 
 runTest :: MTGen -> Int -> Int -> Algorithm -> IO ()
 runTest g n k alg = case alg of
@@ -108,9 +109,9 @@ main :: IO ()
 main = do args <- getArgs
           gen  <- getStdGen
           case getOpt Permute options args of
-            (fs, _, []) -> case foldl (>>=) (Just defaultOptions) fs of
-              Nothing   -> putStrLn "Bad argument."
-              Just opts -> mapM_ (runTest gen (elems opts) (portion opts)) (algos opts)
-            _           -> putStrLn "Error..."
+            (fs, _, []) -> case foldl (>>=) (Right defaultOptions) fs of
+              Left err   -> putStrLn $ "Error parsing arguments: " ++ err
+              Right opts -> mapM_ (runTest gen (elems opts) (portion opts)) (algos opts)
+            _            -> putStrLn "Error..."
 
 
