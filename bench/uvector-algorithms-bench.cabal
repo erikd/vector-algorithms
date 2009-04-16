@@ -9,7 +9,7 @@ category:               Benchmark
 synopsis:               Benchmarks for uvector-algorithms
 description:            A suite of various benchmarks for verifying the
                         performance of the algorithms in uvector-algorithms.
-build-type:             simple
+build-type:             Simple
 cabal-version:          >= 1.2
 
 executable uvec-bench
@@ -17,3 +17,6 @@ executable uvec-bench
 
   ghc-options:          -Wall -O2
   main-is:              Main.hs
+
+  extensions:
+      Rank2Types
