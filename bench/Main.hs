@@ -77,13 +77,25 @@ defaultOptions = O [] 10000 1000
 type OptionsT = Options -> Either String Options
 
 options :: [OptDescr OptionsT]
-options = [ Option ['A'] ["algorithm"] (ReqArg parseAlgo "ALGO") "Specify an algorithm to be run"
+options = [ Option ['A'] ["algorithm"] (ReqArg parseAlgo "ALGO")
+               "Specify an algorithm to be run"
+          , Option ['n'] ["num-elems"] (ReqArg parseN    "N")
+               "Specify the size of arrays in algorithms"
+          , Option ['k'] ["portion"]   (ReqArg parseK    "K")
+               "Specify the number of elements to partial sort/select in relevant algorithms."
           ]
 
 parseAlgo :: String -> Options -> Either String Options
 parseAlgo "None" o = Right $ o { algos = [] }
 parseAlgo "All"  o = Right $ o { algos = [DoNothing .. RadixSort] }
 parseAlgo s      o = fmap (\v -> o { algos = v : algos o }) $ readEither s
+
+parseNum :: (Int -> Options) -> String -> Either String Options
+parseNum f = fmap f . readEither
+
+parseN, parseK :: String -> Options -> Either String Options
+parseN s o = parseNum (\n -> o { elems   = n }) s
+parseK s o = parseNum (\k -> o { portion = k }) s
 
 readEither :: Read a => String -> Either String a
 readEither s = case reads s of
