@@ -1,4 +1,4 @@
-{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE Rank2Types #-}
 
 module Main (main) where
 
@@ -104,6 +104,7 @@ runTest g n k alg = case alg of
   RadixSort          -> sortSuite        "radix sort"            g n   R.sort
   _                  -> putStrLn $ "Currently unsupported algorithm: " ++ show alg
 
+main :: IO ()
 main = do args <- getArgs
           gen  <- getStdGen
           case getOpt Permute options args of
