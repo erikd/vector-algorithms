@@ -9,6 +9,8 @@ import Data.Array.Vector
 
 import System.CPUTime
 
+import System.Random.Mersenne
+
 -- Some conveniences for doing evil stuff in the ST monad.
 -- All the tests get run in IO, but uvector stuff happens
 -- in ST, so we temporarily coerce.
@@ -25,12 +27,12 @@ ascend = return . fromIntegral
 descend :: Num e => e -> Int -> ST s e
 descend m n = return $ m - fromIntegral n
 
-modulo :: Num e => e -> Int -> ST s e
+modulo :: Integral e => e -> Int -> ST s e
 modulo m n = return $ fromIntegral n `mod` m
 
 -- This is the worst case for the median-of-three quicksort
 -- used in the introsort implementation.
-medianKiller :: Num e => e -> Int -> ST s e
+medianKiller :: Integral e => e -> Int -> ST s e
 medianKiller m n'
   | n < k     = return $ if even n then n + 1 else n + k
   | otherwise = return $ (n - k + 1) * 2
@@ -39,7 +41,7 @@ medianKiller m n'
  k = m `div` 2
 {-# INLINE medianKiller #-}
 
-initialize :: (UA e) => MUArr es -> Int -> (Int -> ST s e) -> ST s ()
+initialize :: (UA e) => MUArr e s -> Int -> (Int -> ST s e) -> ST s ()
 initialize arr len fill = init $ len - 1
  where init n = fill n >>= writeMU arr n >> when (n > 0) (init $ n - 1)
 {-# INLINE initialize #-}
