@@ -2,7 +2,6 @@
 
 module Main (main) where
 
-import Control.Monad
 import Control.Monad.ST
 import Control.Monad.Error
 
