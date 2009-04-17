@@ -6,6 +6,8 @@ import Control.Monad.ST
 import Control.Monad.Error
 
 import Data.Char
+import Data.Ord  (comparing)
+import Data.List (maximumBy)
 import Data.Array.Vector
 
 import qualified Data.Array.Vector.Algorithms.Insertion as INS
@@ -66,31 +68,47 @@ data Algorithm = DoNothing
                | TriHeapSelect
                | MergeSort
                | RadixSort
-               deriving (Show, Read, Enum)
+               deriving (Show, Read, Enum, Bounded)
 
-data Options = O { algos :: [Algorithm], elems :: Int, portion :: Int } deriving (Show)
+data Options = O { algos :: [Algorithm], elems :: Int, portion :: Int, usage :: Bool } deriving (Show)
 
 defaultOptions :: Options
-defaultOptions = O [] 10000 1000
+defaultOptions = O [] 10000 1000 False
 
 type OptionsT = Options -> Either String Options
 
 options :: [OptDescr OptionsT]
-options = [ Option ['A'] ["algorithm"] (ReqArg parseAlgo "ALGO")
-               "Specify an algorithm to be run"
-          , Option ['n'] ["num-elems"] (ReqArg parseN    "N")
-               "Specify the size of arrays in algorithms"
-          , Option ['k'] ["portion"]   (ReqArg parseK    "K")
-               "Specify the number of elements to partial sort/select in relevant algorithms."
+options = [ Option ['A']     ["algorithm"] (ReqArg parseAlgo "ALGO")
+               ("Specify an algorithm to be run. Options:\n" ++ algoOpts)
+          , Option ['n']     ["num-elems"] (ReqArg parseN    "INT")
+               "Specify the size of arrays in algorithms."
+          , Option ['k']     ["portion"]   (ReqArg parseK    "INT")
+               "Specify the number of elements to partial sort/select in\nrelevant algorithms."
+          , Option ['?','v'] ["help"]      (NoArg $ \o -> Right $ o { usage = True })
+               "Show options."
           ]
+ where
+ allAlgos :: [Algorithm]
+ allAlgos = [minBound .. maxBound]
+ algoOpts = fmt allAlgos
+ fmt (x:y:zs) = '\t' : pad (show x) ++ show y ++ "\n" ++ fmt zs
+ fmt [x]      = '\t' : show x ++ "\n"
+ fmt []       = ""
+ size         = ("    " ++) . maximumBy (comparing length) . map show $ allAlgos
+ pad str      = zipWith const (str ++ repeat ' ') size
 
 parseAlgo :: String -> Options -> Either String Options
 parseAlgo "None" o = Right $ o { algos = [] }
 parseAlgo "All"  o = Right $ o { algos = [DoNothing .. RadixSort] }
-parseAlgo s      o = fmap (\v -> o { algos = v : algos o }) $ readEither s
+parseAlgo s      o = leftMap (\e -> "Unrecognized algorithm `" ++ e ++ "'")
+                     . fmap (\v -> o { algos = v : algos o }) $ readEither s
+
+leftMap :: (a -> b) -> Either a c -> Either b c
+leftMap f (Left a)  = Left (f a)
+leftMap _ (Right c) = Right c
 
 parseNum :: (Int -> Options) -> String -> Either String Options
-parseNum f = fmap f . readEither
+parseNum f = leftMap (\e -> "Invalid numeric argument `" ++ e ++ "'") . fmap f . readEither
 
 parseN, parseK :: String -> Options -> Either String Options
 parseN s o = parseNum (\n -> o { elems   = n }) s
@@ -98,8 +116,8 @@ parseK s o = parseNum (\k -> o { portion = k }) s
 
 readEither :: Read a => String -> Either String a
 readEither s = case reads s of
-  [(x,s)] | all isSpace s -> Right x
-  _                       -> Left $ "Bad parse: " ++ s
+  [(x,t)] | all isSpace t -> Right x
+  _                       -> Left s
 
 runTest :: MTGen -> Int -> Int -> Algorithm -> IO ()
 runTest g n k alg = case alg of
@@ -121,8 +139,10 @@ main = do args <- getArgs
           gen  <- getStdGen
           case getOpt Permute options args of
             (fs, _, []) -> case foldl (>>=) (Right defaultOptions) fs of
-              Left err   -> putStrLn $ "Error parsing arguments: " ++ err
-              Right opts -> mapM_ (runTest gen (elems opts) (portion opts)) (algos opts)
-            _            -> putStrLn "Error..."
+              Left err   -> putStrLn $ usageInfo err options
+              Right opts | not (usage opts) ->
+                mapM_ (runTest gen (elems opts) (portion opts)) (algos opts)
+                         | otherwise -> putStrLn $ usageInfo "uvector-algorithms-bench" options
+            (_, _, errs) -> putStrLn $ usageInfo (concat errs) options
 
 
