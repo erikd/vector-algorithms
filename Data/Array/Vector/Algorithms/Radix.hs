@@ -183,7 +183,7 @@ sort arr = do
  len = lengthMU arr
  e :: e
  e = undefined
- go !swap src dst count prefix k
+ go !swap !src !dst !count prefix k
    | k < passes e = do zero 0 count
                        countLoop 0 k src count
                        writeMU prefix 0 0
