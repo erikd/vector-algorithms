@@ -1,4 +1,4 @@
-{-# LANGUAGE ScopedTypeVariables, BangPatterns #-}
+{-# LANGUAGE ScopedTypeVariables, BangPatterns, TypeOperators #-}
 
 -- ---------------------------------------------------------------------------
 -- |
