@@ -178,38 +178,68 @@ sort arr = do
   tmp    <- newMU len
   count  <- newMU (size e)
   prefix <- newMU (size e)
-  go False arr tmp count prefix 0
+  radixLoop arr tmp count prefix (passes e)
  where
  len = lengthMU arr
  e :: e
  e = undefined
- go !swap !src !dst !count prefix k
-   | k < passes e = do zero 0 count
-                       countLoop 0 k src count
-                       writeMU prefix 0 0
-                       prefixLoop 1 0 count prefix
-                       moveLoop 0 k src dst prefix
-                       go (not swap) dst src count prefix (k+1)
-   | otherwise    = when swap (mcopyMU src dst 0 0 len)
- zero i a
-   | i < size e = writeMU a i 0 >> zero (i+1) a
+{-# INLINE sort #-}
+
+radixLoop :: Radix e => MUArr e s -> MUArr e s -> MUArr Int s -> MUArr Int s -> Int -> ST s ()
+radixLoop src dst count prefix passes = go False src dst 0
+ where
+ len = lengthMU src
+ go !swap !src !dst k
+   | k < passes = do zero count
+                     countLoop k src count
+                     writeMU prefix 0 0
+                     prefixLoop count prefix
+                     moveLoop k src dst prefix
+                     go (not swap) dst src (k+1)
+   | otherwise  = when swap (mcopyMU src dst 0 0 len)
+{-# INLINE radixLoop #-}
+
+zero :: MUArr Int s -> ST s ()
+zero a = go 0
+ where
+ len = lengthMU a
+ go i
+   | i < len   = writeMU a i 0 >> go (i+1)
+   | otherwise = return ()
+{-# INLINE zero #-}
+
+countLoop :: Radix e => Int -> MUArr e s -> MUArr Int s -> ST s ()
+countLoop k src count = go 0
+ where
+ len = lengthMU src
+ go i
+   | i < len    = readMU src i >>= inc count . radix k >> go (i+1)
    | otherwise  = return ()
- countLoop i k src count
-   | i < len    = readMU src i >>= inc count . radix k >> countLoop (i+1) k src count
-   | otherwise  = return ()
- prefixLoop i pi count prefix
-   | i < size e = do ci <- readMU count (i-1)
-                     let pi' = pi + ci
-                     writeMU prefix i pi'
-                     prefixLoop (i+1) pi' count prefix
-   | otherwise  = return ()
- moveLoop i k src dst prefix
+{-# INLINE countLoop #-}
+
+prefixLoop :: MUArr Int s -> MUArr Int s -> ST s ()
+prefixLoop count prefix = go 1 0
+ where
+ len = lengthMU count
+ go i pi
+   | i < len   = do ci <- readMU count (i-1)
+                    let pi' = pi + ci
+                    writeMU prefix i pi'
+                    go (i+1) pi'
+   | otherwise = return ()
+{-# INLINE prefixLoop #-}
+
+moveLoop :: Radix e => Int -> MUArr e s -> MUArr e s -> MUArr Int s -> ST s ()
+moveLoop k src dst prefix = go 0
+ where
+ len = lengthMU src
+ go i
    | i < len    = do srci <- readMU src i
                      pf   <- inc prefix (radix k srci)
                      writeMU dst pf srci
-                     moveLoop (i+1) k src dst prefix
+                     go (i+1)
    | otherwise  = return ()
-{-# INLINE sort #-}
+{-# INLINE moveLoop #-}
 
 inc :: MUArr Int s -> Int -> ST s Int
 inc arr i = readMU arr i >>= \e -> writeMU arr i (e+1) >> return e
