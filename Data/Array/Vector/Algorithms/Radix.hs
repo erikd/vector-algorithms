@@ -186,18 +186,24 @@ sort arr = do
 {-# INLINE sort #-}
 
 radixLoop :: Radix e => MUArr e s -> MUArr e s -> MUArr Int s -> MUArr Int s -> Int -> ST s ()
-radixLoop src dst count prefix passes = go False src dst 0
+radixLoop src dst count prefix passes = go False 0
  where
  len = lengthMU src
- go !swap !src !dst k
-   | k < passes = do zero count
-                     countLoop k src count
-                     writeMU prefix 0 0
-                     prefixLoop count prefix
-                     moveLoop k src dst prefix
-                     go (not swap) dst src (k+1)
+ go swap k
+   | k < passes = if swap
+                    then body dst src count prefix k >> go (not swap) (k+1)
+                    else body src dst count prefix k >> go (not swap) (k+1)
    | otherwise  = when swap (mcopyMU src dst 0 0 len)
 {-# INLINE radixLoop #-}
+
+body :: Radix e => MUArr e s -> MUArr e s -> MUArr Int s -> MUArr Int s -> Int -> ST s ()
+body src dst count prefix k = do
+  zero count
+  countLoop k src count
+  writeMU prefix 0 0
+  prefixLoop count prefix
+  moveLoop k src dst prefix
+{-# INLINE body #-}
 
 zero :: MUArr Int s -> ST s ()
 zero a = go 0
