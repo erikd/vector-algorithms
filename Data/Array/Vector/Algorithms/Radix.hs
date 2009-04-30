@@ -33,7 +33,7 @@
 --
 --    > radix k e = (e `shiftR` (k*8)) .&. 256
 
-module Data.Array.Vector.Algorithms.Radix (sort, Radix(..)) where
+module Data.Array.Vector.Algorithms.Radix (sort, sortBy, Radix(..)) where
 
 import Control.Monad
 import Control.Monad.ST
@@ -174,35 +174,64 @@ instance (Radix i, Radix j) => Radix (i :*: j) where
 
 -- | Sorts an array based on the Radix instance.
 sort :: forall e s. Radix e => MUArr e s -> ST s ()
-sort arr = do
-  tmp    <- newMU len
-  count  <- newMU (size e)
-  prefix <- newMU (size e)
-  radixLoop arr tmp count prefix (passes e)
+sort arr = sortBy (passes e) (size e) radix arr
  where
- len = lengthMU arr
  e :: e
  e = undefined
 {-# INLINE sort #-}
 
-radixLoop :: Radix e => MUArr e s -> MUArr e s -> MUArr Int s -> MUArr Int s -> Int -> ST s ()
-radixLoop src dst count prefix passes = go False 0
+-- | Radix sorts an array using custom radix information
+-- requires the number of passes to fully sort the array,
+-- the size of of auxiliary arrays necessary (should be
+-- one greater than the maximum value returned by the radix
+-- function), and a radix function, which takes the pass
+-- and an element, and returns the relevant radix.
+sortBy :: (UA e) => Int               -- ^ the number of passes
+                 -> Int               -- ^ the size of auxiliary arrays
+                 -> (Int -> e -> Int) -- ^ the radix function
+                 -> MUArr e s         -- ^ the array to be sorted
+                 -> ST s ()
+sortBy passes size rdx arr = do
+  tmp    <- newMU (lengthMU arr)
+  count  <- newMU (size)
+  prefix <- newMU (size)
+  radixLoop passes rdx arr tmp count prefix
+ where
+ len = lengthMU arr
+ e :: e
+ e = undefined
+{-# INLINE sortBy #-}
+
+radixLoop :: (UA e) => Int               -- passes
+                    -> (Int -> e -> Int) -- radix function
+                    -> MUArr e s         -- array to sort
+                    -> MUArr e s         -- temporary array
+                    -> MUArr Int s       -- radix count array
+                    -> MUArr Int s       -- placement array
+                    -> ST s ()
+radixLoop passes rdx src dst count prefix = go False 0
  where
  len = lengthMU src
  go swap k
    | k < passes = if swap
-                    then body dst src count prefix k >> go (not swap) (k+1)
-                    else body src dst count prefix k >> go (not swap) (k+1)
-   | otherwise  = when swap (mcopyMU src dst 0 0 len)
+                    then body rdx dst src count prefix k >> go (not swap) (k+1)
+                    else body rdx src dst count prefix k >> go (not swap) (k+1)
+   | otherwise  = when swap (mcopyMU dst src 0 0 len)
 {-# INLINE radixLoop #-}
 
-body :: Radix e => MUArr e s -> MUArr e s -> MUArr Int s -> MUArr Int s -> Int -> ST s ()
-body src dst count prefix k = do
+body :: (UA e) => (Int -> e -> Int) -- radix function
+               -> MUArr e s         -- source array
+               -> MUArr e s         -- destination array
+               -> MUArr Int s       -- radix count
+               -> MUArr Int s       -- placement
+               -> Int               -- current pass
+               -> ST s ()
+body rdx src dst count prefix k = do
   zero count
-  countLoop k src count
+  countLoop k rdx src count
   writeMU prefix 0 0
   prefixLoop count prefix
-  moveLoop k src dst prefix
+  moveLoop k rdx src dst prefix
 {-# INLINE body #-}
 
 zero :: MUArr Int s -> ST s ()
@@ -214,12 +243,12 @@ zero a = go 0
    | otherwise = return ()
 {-# INLINE zero #-}
 
-countLoop :: Radix e => Int -> MUArr e s -> MUArr Int s -> ST s ()
-countLoop k src count = go 0
+countLoop :: (UA e) => Int -> (Int -> e -> Int) -> MUArr e s -> MUArr Int s -> ST s ()
+countLoop k rdx src count = go 0
  where
  len = lengthMU src
  go i
-   | i < len    = readMU src i >>= inc count . radix k >> go (i+1)
+   | i < len    = readMU src i >>= inc count . rdx k >> go (i+1)
    | otherwise  = return ()
 {-# INLINE countLoop #-}
 
@@ -235,13 +264,13 @@ prefixLoop count prefix = go 1 0
    | otherwise = return ()
 {-# INLINE prefixLoop #-}
 
-moveLoop :: Radix e => Int -> MUArr e s -> MUArr e s -> MUArr Int s -> ST s ()
-moveLoop k src dst prefix = go 0
+moveLoop :: (UA e) => Int -> (Int -> e -> Int) -> MUArr e s -> MUArr e s -> MUArr Int s -> ST s ()
+moveLoop k rdx src dst prefix = go 0
  where
  len = lengthMU src
  go i
    | i < len    = do srci <- readMU src i
-                     pf   <- inc prefix (radix k srci)
+                     pf   <- inc prefix (rdx k srci)
                      writeMU dst pf srci
                      go (i+1)
    | otherwise  = return ()
