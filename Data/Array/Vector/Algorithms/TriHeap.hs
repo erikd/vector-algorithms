@@ -3,7 +3,7 @@
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Array.Vector.Algorithms.TriHeap
--- Copyright   : (c) 2008 Dan Doel
+-- Copyright   : (c) 2008-2009 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (type operators)
