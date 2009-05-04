@@ -1,3 +1,4 @@
+{-# LANGUAGE Rank2Types #-}
 
 module Properties where
 
@@ -9,6 +10,8 @@ import Data.Array.Vector
 import Data.Array.Vector.Algorithms.Combinators
 
 import Test.QuickCheck
+
+import Util
 
 prop_sorted :: (UA e, Ord e) => UArr e -> Property
 prop_sorted arr | lengthU arr < 2 = property True
@@ -24,17 +27,25 @@ prop_fullsort algo arr = prop_sorted $ apply algo arr
 longGen :: (UA e, Arbitrary e) => Int -> Gen (UArr e)
 longGen k = liftM2 (\l r -> toU (l ++ r)) (vectorOf k arbitrary) arbitrary
 
+sanity :: Int
+sanity = 100
+
 prop_partialsort :: (UA e, Ord e, Arbitrary e, Show e)
-                 => (forall s. Int -> MUArr e s -> ST s ())
-                 -> Int -> Property
-prop_partialsort algo k = forAll (longGen k) $
-                            prop_sorted . takeU k . apply (algo k)
+                 => (forall s. MUArr e s -> Int -> ST s ())
+                 -> Positive Int -> Property
+prop_partialsort algo (Positive k) =
+  let k' = k `mod` sanity
+  in forAll (longGen k') $
+       prop_sorted . takeU k' . apply (\marr -> algo marr k')
+
 
 prop_select :: (UA e, Ord e, Arbitrary e, Show e)
-            => (forall s. Int -> MUArr e s -> ST s ())
-            -> Int -> Property
-prop_select algo k = forAll (longGen k) $ \arr ->
-                         let arr' = apply (algo k) arr
-                             (l, r) = splitAtU k arr'
-                         in allU (\e -> allU (e<=) r) l
+            => (forall s. MUArr e s -> Int -> ST s ())
+            -> Positive Int -> Property
+prop_select algo (Positive k) =
+  let k' = k `mod` sanity
+  in forAll (longGen k') $ \arr ->
+       let arr' = apply (\marr -> algo marr k') arr
+           (l, r) = splitAtU k' arr'
+       in allU (\e -> allU (e<=) r) l
 

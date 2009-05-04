@@ -1,11 +1,15 @@
+{-# LANGUAGE ImpredicativeTypes, Rank2Types #-}
 
-module Tests(main) where
+module Main (main) where
 
 import Properties
 
 import Util
 
 import Test.QuickCheck
+
+import Control.Monad
+import Control.Monad.ST
 
 import Data.Array.Vector
 
@@ -20,15 +24,34 @@ args = stdArgs
        , maxDiscard = 200
        }
 
-prop_Int_sort = mapM_ (quickCheckWith args) props
+check_Int_sort = forM_ algos $ \(name,algo) ->
+  quickCheckWith args (label name . prop_fullsort algo)
  where
- props :: [UArr Int -> Property]
- props = [ label "intro"     . prop_fullsort INT.sort
-         , label "insertion" . prop_fullsort INS.sort
-         , label "merge"     . prop_fullsort M.sort
-         , label "radix"     . prop_fullsort R.sort
-         , label "tri-heap"  . prop_fullsort TH.sort
+ algos :: [(String, forall s. MUArr Int s -> ST s ())]
+ algos = [ ("introsort", INT.sort)
+         , ("insertion sort", INS.sort)
+         , ("merge sort", M.sort)
+         , ("radix sort", R.sort)
+         , ("tri-heapsort", TH.sort)
          ]
 
+check_Int_partialsort = forM_ algos $ \(name,algo) ->
+  quickCheckWith args (label name . prop_partialsort algo)
+ where
+ algos :: [(String, forall s. MUArr Int s -> Int -> ST s ())]
+ algos = [ ("intro-partialsort", INT.partialSort)
+         , ("tri-heap partialsort", TH.partialSort)
+         ]
 
-main = prop_Int_sort
+check_Int_select = forM_ algos $ \(name,algo) ->
+  quickCheckWith args (label name . prop_select algo)
+ where
+ algos :: [(String, forall s. MUArr Int s -> Int -> ST s ())]
+ algos = [ ("intro-select", INT.select)
+         , ("tri-heap select", TH.select)
+         ]
+
+main = do putStrLn "Int tests:"
+          check_Int_sort
+          check_Int_partialsort
+          check_Int_select
