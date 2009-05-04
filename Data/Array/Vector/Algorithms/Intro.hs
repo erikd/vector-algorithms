@@ -145,15 +145,17 @@ partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
  where
  len = u - l
  go 0 l m n = H.partialSortByBounds cmp a (m - l) l u
- go n l m u = do O.sort3ByIndex cmp a c l (u-1)
-                 p <- readMU a l
-                 mid <- partitionBy cmp a p (l+1) u
-                 swap a l (mid - 1)
-                 case compare m mid of
-                   GT -> do introsort cmp a (n-1) l (mid - 1)
-                            go (n-1) mid m u
-                   EQ -> introsort cmp a (n-1) l m
-                   LT -> go n l m (mid - 1)
+ go n l m u
+   | l == m    = return ()
+   | otherwise = do O.sort3ByIndex cmp a c l (u-1)
+                    p <- readMU a l
+                    mid <- partitionBy cmp a p (l+1) u
+                    swap a l (mid - 1)
+                    case compare m mid of
+                      GT -> do introsort cmp a (n-1) l (mid - 1)
+                               go (n-1) mid m u
+                      EQ -> introsort cmp a (n-1) l m
+                      LT -> go n l m (mid - 1)
   where c = (u + l) `div` 2
 {-# INLINE partialSortByBounds #-}
 
