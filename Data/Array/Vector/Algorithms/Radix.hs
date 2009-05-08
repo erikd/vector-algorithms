@@ -196,10 +196,6 @@ sortBy passes size rdx arr = do
   count  <- newMU (size)
   prefix <- newMU (size)
   radixLoop passes rdx arr tmp count prefix
- where
- len = lengthMU arr
- e :: e
- e = undefined
 {-# INLINE sortBy #-}
 
 radixLoop :: (UA e) => Int               -- passes
