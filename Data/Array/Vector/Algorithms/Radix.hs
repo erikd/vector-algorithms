@@ -73,7 +73,7 @@ instance Radix Int8 where
   {-# INLINE passes #-}
   size _ = 256
   {-# INLINE size #-}
-  radix _ e = fromIntegral e `xor` 128
+  radix _ e = 255 .&. fromIntegral e `xor` 128 
   {-# INLINE radix #-}
 
 instance Radix Int16 where
