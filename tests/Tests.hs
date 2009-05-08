@@ -34,7 +34,6 @@ check_Int_sort = forM_ algos $ \(name,algo) ->
  algos = [ ("introsort", INT.sort)
          , ("insertion sort", INS.sort)
          , ("merge sort", M.sort)
-         , ("radix sort", R.sort)
          , ("tri-heapsort", TH.sort)
          ]
 
