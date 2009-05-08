@@ -73,3 +73,6 @@ main = do putStrLn "Int tests:"
           check_Int_sort
           check_Int_partialsort
           check_Int_select
+          putStrLn "Radix sort tests:"
+          check_radix_sorts
+
