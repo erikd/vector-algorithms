@@ -1,4 +1,4 @@
-{-# LANGUAGE ImpredicativeTypes, Rank2Types #-}
+{-# LANGUAGE ImpredicativeTypes, Rank2Types, TypeOperators #-}
 
 module Main (main) where
 
@@ -10,6 +10,9 @@ import Test.QuickCheck
 
 import Control.Monad
 import Control.Monad.ST
+
+import Data.Int
+import Data.Word
 
 import Data.Array.Vector
 
@@ -50,6 +53,22 @@ check_Int_select = forM_ algos $ \(name,algo) ->
  algos = [ ("intro-select", INT.select)
          , ("tri-heap select", TH.select)
          ]
+
+check_radix_sorts = do
+  qc (label "Word8"  . prop_fullsort (R.sort :: MUArr Word8 s  -> ST s ()))
+  qc (label "Word16" . prop_fullsort (R.sort :: MUArr Word16 s -> ST s ()))
+  qc (label "Word32" . prop_fullsort (R.sort :: MUArr Word32 s -> ST s ()))
+  qc (label "Word64" . prop_fullsort (R.sort :: MUArr Word64 s -> ST s ()))
+  qc (label "Word"   . prop_fullsort (R.sort :: MUArr Word s   -> ST s ()))
+  qc (label "Int8"   . prop_fullsort (R.sort :: MUArr Int8 s   -> ST s ()))
+  qc (label "Int16"  . prop_fullsort (R.sort :: MUArr Int16 s  -> ST s ()))
+  qc (label "Int32"  . prop_fullsort (R.sort :: MUArr Int32 s  -> ST s ()))
+  qc (label "Int64"  . prop_fullsort (R.sort :: MUArr Int64 s  -> ST s ()))
+  qc (label "Int"    . prop_fullsort (R.sort :: MUArr Int s    -> ST s ()))
+  qc (label "Int :*: Int"
+        . prop_fullsort (R.sort :: MUArr (Int :*: Int) s -> ST s ()))
+ where
+ qc algo = quickCheckWith args algo
 
 main = do putStrLn "Int tests:"
           check_Int_sort
