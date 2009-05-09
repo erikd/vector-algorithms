@@ -24,6 +24,18 @@ prop_fullsort :: (UA e, Ord e)
               => (forall s. MUArr e s -> ST s ()) -> UArr e -> Property
 prop_fullsort algo arr = prop_sorted $ apply algo arr
 
+prop_schwartzian :: (UA e, UA k, Ord k)
+                 => (e -> k)
+                 -> (forall e s. (UA e) => (e -> e -> Ordering) -> MUArr e s -> ST s ())
+                 -> UArr e -> Property
+prop_schwartzian f algo arr
+  | lengthU arr < 2 = property True
+  | otherwise       = let srt = apply (algo `usingKeys` f) arr
+                      in check (headU srt) (tailU srt)
+ where
+ check e arr | nullU arr = property True
+             | otherwise = f e <= f (headU arr) .&. check (headU arr) (tailU arr)
+
 longGen :: (UA e, Arbitrary e) => Int -> Gen (UArr e)
 longGen k = liftM2 (\l r -> toU (l ++ r)) (vectorOf k arbitrary) arbitrary
 

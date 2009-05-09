@@ -69,10 +69,19 @@ check_radix_sorts = do
  where
  qc algo = quickCheckWith args algo
 
+check_schwartzian = do
+  quickCheckWith args (prop_schwartzian i2w INS.sortBy)
+ where
+ i2w :: Int -> Word
+ i2w = fromIntegral
+
 main = do putStrLn "Int tests:"
           check_Int_sort
           check_Int_partialsort
           check_Int_select
           putStrLn "Radix sort tests:"
           check_radix_sorts
+          putStrLn "Schwartzian transform (Int -> Word):"
+          check_schwartzian
+
 
