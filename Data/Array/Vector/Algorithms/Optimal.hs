@@ -71,20 +71,20 @@ sort3ByIndex cmp a i j k = do
   case cmp a0 a1 of
     GT -> case cmp a0 a2 of
             GT -> case cmp a2 a1 of
-                    GT -> do writeMU a i a1
-                             writeMU a j a2
+                    LT -> do writeMU a i a2
                              writeMU a k a0
-                    _  -> do writeMU a i a2
+                    _  -> do writeMU a i a1
+                             writeMU a j a2
                              writeMU a k a0
             _  -> do writeMU a i a1
                      writeMU a j a0
     _  -> case cmp a1 a2 of
-            GT -> case cmp a2 a0 of
-                    GT -> do writeMU a j a2
-                             writeMU a k a1
-                    _  -> do writeMU a i a2
-                             writeMU a k a1
+            GT -> case cmp a0 a2 of
+                    GT -> do writeMU a i a2
                              writeMU a j a0
+                             writeMU a k a1
+                    _  -> do writeMU a j a2
+                             writeMU a k a1
             _  -> return ()
 {-# INLINE sort3ByIndex #-}
 
