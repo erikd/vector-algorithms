@@ -13,6 +13,7 @@ import Data.Ord
 import Data.Array.Vector
 
 import Data.Array.Vector.Algorithms.Optimal (Comparison)
+import Data.Array.Vector.Algorithms.Radix
 import Data.Array.Vector.Algorithms.Combinators
 
 import Test.QuickCheck
@@ -67,10 +68,29 @@ prop_select algo (Positive k) =
            (l, r) = splitAtU k' arr'
        in allU (\e -> allU (e<=) r) l
 
-prop_stable :: (UA e, Eq e)
-            => (forall s. MUArr e s -> ST s ())
-            -> UArr e -> Property
-prop_stable algo arr = property $ apply algo arr == arr
+prop_stable :: (forall e s. (UA e) => Comparison e -> MUArr e s -> ST s ())
+            -> UArr Int -> Property
+-- prop_stable algo arr = property $ apply algo arr == arr
+prop_stable algo arr = stable $ apply (algo (comparing fstS)) $ zipU arr ix
+ where
+ ix = toU [1 .. lengthU arr]
+
+stable arr | nullU arr = property True
+           | otherwise = let e :*: i = headU arr
+                         in allU (\(e' :*: i') -> e < e' || i < i') (tailU arr)
+                            .&. stable (tailU arr)
+
+prop_stable_radix :: (forall e s. UA e => 
+                                  Int -> Int -> (Int -> e -> Int) -> MUArr e s -> ST s ())
+                  -> UArr Int -> Property
+prop_stable_radix algo arr =
+  stable . apply (algo (passes e) (size e) (\k (e :*: _) -> radix k e))
+         $ zipU arr ix
+ where
+ ix = toU [1 .. lengthU arr]
+ e = headU arr
+ 
+
 
 prop_optimal :: Int
              -> (forall e s. (UA e) => Comparison e -> MUArr e s -> Int -> ST s ())

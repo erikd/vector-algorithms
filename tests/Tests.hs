@@ -78,14 +78,8 @@ check_schwartzian = do
  i2w :: Int -> Word
  i2w = fromIntegral
 
-check_stable = forM_ algos $ \(name, algo) ->
-  quickCheckWith args (label name . prop_stable algo)
- where
- eq _ _ = EQ
- algos :: [(String, forall s. MUArr Int s -> ST s ())]
- algos = [ ("merge sort", M.sortBy eq)
-         , ("radix sort", R.sortBy 1 1 (\_ _ -> 0))
-         ]
+check_stable = do quickCheckWith args (label "merge sort" . prop_stable M.sortBy)
+                  quickCheckWith args (label "radix sort" . prop_stable_radix R.sortBy)
 
 check_optimal = do qc . label "size 2" $ prop_optimal 2 O.sort2ByOffset
                    qc . label "size 3" $ prop_optimal 3 O.sort3ByOffset
