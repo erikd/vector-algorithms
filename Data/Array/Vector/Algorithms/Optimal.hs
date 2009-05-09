@@ -105,88 +105,123 @@ sort4ByIndex cmp a i j k l = do
   a2 <- readMU a k
   a3 <- readMU a l
   case cmp a0 a1 of
-    LT -> case cmp a1 a2 of
-            LT -> case cmp a1 a3 of
-                    LT -> case cmp a2 a3 of
-                            GT -> do writeMU a k a3
-                                     writeMU a l a2
-                            _  -> return ()
-                    _  -> do case cmp a0 a3 of
-                               LT -> writeMU a j a3
-                               _  -> do writeMU a j a0
-                                        writeMU a i a3
-                             writeMU a l a2
-                             writeMU a k a1
-            _  -> case cmp a0 a2 of
-                    LT -> case cmp a2 a3 of
-                            LT -> case cmp a1 a3 of
-                                    LT -> do writeMU a j a2
+    GT -> case cmp a0 a2 of
+            GT -> case cmp a1 a2 of
+                    GT -> case cmp a1 a3 of
+                            GT -> case cmp a2 a3 of
+                                    GT -> do writeMU a i a3
+                                             writeMU a j a2
                                              writeMU a k a1
-                                    _  -> do writeMU a l a1
+                                             writeMU a l a0
+                                    _  -> do writeMU a i a2
+                                             writeMU a j a3
+                                             writeMU a k a1
+                                             writeMU a l a0
+                            _  -> case cmp a0 a3 of
+                                    GT -> do writeMU a i a2
+                                             writeMU a j a1
+                                             writeMU a k a3
+                                             writeMU a l a0
+                                    _  -> do writeMU a i a2
+                                             writeMU a j a1
+                                             writeMU a k a0
+                                             writeMU a l a3
+                    _ -> case cmp a2 a3 of
+                           GT -> case cmp a1 a3 of
+                                   GT -> do writeMU a i a3
+                                            writeMU a j a1
+                                            writeMU a k a2
+                                            writeMU a l a0
+                                   _  -> do writeMU a i a1
+                                            writeMU a j a3
+                                            writeMU a k a2
+                                            writeMU a l a0
+                           _  -> case cmp a0 a3 of
+                                   GT -> do writeMU a i a1
+                                            writeMU a j a2
+                                            writeMU a k a3
+                                            writeMU a l a0
+                                   _  -> do writeMU a i a1
+                                            writeMU a j a2
+                                            writeMU a k a0
+                                            -- writeMU a l a3
+            _  -> case cmp a0 a3 of
+                    GT -> case cmp a1 a3 of
+                            GT -> do writeMU a i a3
+                                     -- writeMU a j a1
+                                     writeMU a k a0
+                                     writeMU a l a2
+                            _  -> do writeMU a i a1
+                                     writeMU a j a3
+                                     writeMU a k a0
+                                     writeMU a l a2
+                    _  -> case cmp a2 a3 of
+                            GT -> do writeMU a i a1
+                                     writeMU a j a0
+                                     writeMU a k a3
+                                     writeMU a l a2
+                            _  -> do writeMU a i a1
+                                     writeMU a j a0
+                                     -- writeMU a k a2
+                                     -- writeMU a l a3
+    _  -> case cmp a1 a2 of
+            GT -> case cmp a0 a2 of
+                    GT -> case cmp a0 a3 of
+                            GT -> case cmp a2 a3 of
+                                    GT -> do writeMU a i a3
+                                             writeMU a j a2
+                                             writeMU a k a0
+                                             writeMU a l a1
+                                    _  -> do writeMU a i a2
+                                             writeMU a j a3
+                                             writeMU a k a0
+                                             writeMU a l a1
+                            _  -> case cmp a1 a3 of
+                                    GT -> do writeMU a i a2
+                                             writeMU a j a0
+                                             writeMU a k a3
+                                             writeMU a l a1
+                                    _  -> do writeMU a i a2
+                                             writeMU a j a0
+                                             writeMU a k a1
+                                             -- writeMU a l a3
+                    _  -> case cmp a2 a3 of
+                            GT -> case cmp a0 a3 of
+                                    GT -> do writeMU a i a3
+                                             writeMU a j a0
+                                             -- writeMU a k a2
+                                             writeMU a l a1
+                                    _  -> do -- writeMU a i a0
+                                             writeMU a j a3
+                                             -- writeMU a k a2
+                                             writeMU a l a1
+                            _  -> case cmp a1 a3 of
+                                    GT -> do -- writeMU a i a0
                                              writeMU a j a2
                                              writeMU a k a3
-                            _  -> case cmp a0 a3 of
-                                    LT -> do writeMU a l a1
-                                             writeMU a j a3
-                                    _  -> do writeMU a i a3
                                              writeMU a l a1
-                                             writeMU a j a0
-                    _  -> case cmp a0 a3 of
-                            LT -> do writeMU a i a2
-                                     case cmp a1 a3 of
-                                       LT -> writeMU a k a1
-                                       _  -> do writeMU a k a3
-                                                writeMU a l a1
-                                     writeMU a j a0
-                            _  -> case cmp a2 a3 of
-                                    LT -> do writeMU a i a2
-                                             writeMU a k a0
-                                             writeMU a j a3
-                                             writeMU a l a1
-                                    _  -> do writeMU a j a2
-                                             writeMU a k a0
-                                             writeMU a i a3
-                                             writeMU a l a1
-    _  -> case cmp a0 a2 of
-            LT -> case cmp a0 a3 of
-                    LT -> do writeMU a i a1
-                             writeMU a j a0
-                             case cmp a2 a3 of
-                               GT -> do writeMU a k a3
-                                        writeMU a l a2
-                               _  -> return ()
-                    _  -> do case cmp a1 a3 of
-                               LT -> do writeMU a i a1
-                                        writeMU a j a3
-                               _  -> writeMU a i a3
-                             writeMU a l a2
-                             writeMU a k a0
-            _  -> case cmp a1 a2 of
-                    LT -> case cmp a2 a3 of
-                            LT -> do writeMU a i a1
-                                     writeMU a j a2
-                                     case cmp a0 a3 of
-                                       LT -> writeMU a k a0
-                                       _  -> do writeMU a k a3
-                                                writeMU a l a0
-                            _  -> do case cmp a1 a3 of
-                                       LT -> do writeMU a i a1
-                                                writeMU a j a3
-                                       _  -> writeMU a i a3
-                                     writeMU a l a0
-                    _  -> case cmp a1 a3 of
-                            LT -> do writeMU a i a2
-                                     case cmp a0 a3 of
-                                       LT -> writeMU a k a0
-                                       _  -> do writeMU a k a3
-                                                writeMU a l a0
-                            _  -> case cmp a2 a3 of
-                                    LT -> do writeMU a i a2
-                                             writeMU a k a1
-                                             writeMU a j a3
-                                             writeMU a l a0
-                                    _  -> do writeMU a i a3
-                                             writeMU a l a0
+                                    _  -> do -- writeMU a i a0
                                              writeMU a j a2
                                              writeMU a k a1
+                                             -- writeMU a l a3
+            _  -> case cmp a1 a3 of
+                    GT -> case cmp a0 a3 of
+                            GT -> do writeMU a i a3
+                                     writeMU a j a0
+                                     writeMU a k a1
+                                     writeMU a l a2
+                            _  -> do -- writeMU a i a0
+                                     writeMU a j a3
+                                     writeMU a k a1
+                                     writeMU a l a2
+                    _  -> case cmp a2 a3 of
+                            GT -> do -- writeMU a i a0
+                                     -- writeMU a j a1
+                                     writeMU a k a3
+                                     writeMU a l a2
+                            _  -> do -- writeMU a i a0
+                                     -- writeMU a j a1
+                                     -- writeMU a k a2
+                                     -- writeMU a l a3
+                                     return ()
 {-# INLINE sort4ByIndex #-}
