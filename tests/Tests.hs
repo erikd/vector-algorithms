@@ -75,6 +75,16 @@ check_schwartzian = do
  i2w :: Int -> Word
  i2w = fromIntegral
 
+check_stable = forM_ algos $ \(name, algo) ->
+  quickCheckWith args (label name . prop_stable algo)
+ where
+ eq _ _ = EQ
+ algos :: [(String, forall s. MUArr Int s -> ST s ())]
+ algos = [ ("merge sort", M.sortBy eq)
+         , ("radix sort", R.sortBy 1 1 (\_ _ -> 0))
+         ]
+ 
+
 main = do putStrLn "Int tests:"
           check_Int_sort
           check_Int_partialsort
@@ -83,5 +93,7 @@ main = do putStrLn "Int tests:"
           check_radix_sorts
           putStrLn "Schwartzian transform (Int -> Word):"
           check_schwartzian
+          putStrLn "Stability:"
+          check_stable
 
 

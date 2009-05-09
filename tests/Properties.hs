@@ -61,3 +61,7 @@ prop_select algo (Positive k) =
            (l, r) = splitAtU k' arr'
        in allU (\e -> allU (e<=) r) l
 
+prop_stable :: (UA e, Eq e)
+            => (forall s. MUArr e s -> ST s ())
+            -> UArr e -> Property
+prop_stable algo arr = property $ apply algo arr == arr
