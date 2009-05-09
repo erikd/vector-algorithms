@@ -16,11 +16,14 @@ import Data.Word
 
 import Data.Array.Vector
 
-import Data.Array.Vector.Algorithms.Insertion as INS
-import Data.Array.Vector.Algorithms.Intro     as INT
-import Data.Array.Vector.Algorithms.Merge     as M
-import Data.Array.Vector.Algorithms.Radix     as R
-import Data.Array.Vector.Algorithms.TriHeap   as TH
+import Data.Array.Vector.Algorithms.Combinators
+
+import qualified Data.Array.Vector.Algorithms.Insertion as INS
+import qualified Data.Array.Vector.Algorithms.Intro     as INT
+import qualified Data.Array.Vector.Algorithms.Merge     as M
+import qualified Data.Array.Vector.Algorithms.Radix     as R
+import qualified Data.Array.Vector.Algorithms.TriHeap   as TH
+import qualified Data.Array.Vector.Algorithms.Optimal   as O
 
 args = stdArgs
        { maxSuccess = 300
