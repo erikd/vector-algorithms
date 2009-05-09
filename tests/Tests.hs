@@ -83,7 +83,12 @@ check_stable = forM_ algos $ \(name, algo) ->
  algos = [ ("merge sort", M.sortBy eq)
          , ("radix sort", R.sortBy 1 1 (\_ _ -> 0))
          ]
- 
+
+check_optimal = do qc . label "size 2" $ prop_optimal 2 O.sort2ByOffset
+                   qc . label "size 3" $ prop_optimal 3 O.sort3ByOffset
+                   qc . label "size 4" $ prop_optimal 4 O.sort4ByOffset
+ where
+ qc = quickCheck
 
 main = do putStrLn "Int tests:"
           check_Int_sort
@@ -95,5 +100,5 @@ main = do putStrLn "Int tests:"
           check_schwartzian
           putStrLn "Stability:"
           check_stable
-
-
+          putStrLn "Optimals:"
+          check_optimal

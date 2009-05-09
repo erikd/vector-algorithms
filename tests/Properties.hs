@@ -2,11 +2,17 @@
 
 module Properties where
 
+import Optimal
+
 import Control.Monad
 import Control.Monad.ST
 
+import Data.List
+import Data.Ord
+
 import Data.Array.Vector
 
+import Data.Array.Vector.Algorithms.Optimal (Comparison)
 import Data.Array.Vector.Algorithms.Combinators
 
 import Test.QuickCheck
@@ -65,3 +71,19 @@ prop_stable :: (UA e, Eq e)
             => (forall s. MUArr e s -> ST s ())
             -> UArr e -> Property
 prop_stable algo arr = property $ apply algo arr == arr
+
+prop_optimal :: Int
+             -> (forall e s. (UA e) => Comparison e -> MUArr e s -> Int -> ST s ())
+             -> Property
+prop_optimal n algo = label "sorting" sortn .&. label "stability" stabn
+ where
+ arrn  = toU [0..n-1]
+ sortn = all ( (== arrn)
+             . apply (\a -> algo compare a 0)
+             . toU)
+         $ permutations [0..n-1]
+ stabn = all ( (== arrn)
+             . sndS
+             . unzipU
+             . apply (\a -> algo (comparing fstS) a 0))
+         $ stability n
