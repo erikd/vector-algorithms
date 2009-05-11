@@ -16,6 +16,8 @@ import Data.Array.Vector.Algorithms.Optimal (Comparison)
 import Data.Array.Vector.Algorithms.Radix
 import Data.Array.Vector.Algorithms.Combinators
 
+import qualified Data.Map as M
+
 import Test.QuickCheck
 
 import Util
@@ -92,8 +94,6 @@ prop_stable_radix algo arr =
  ix = toU [1 .. lengthU arr]
  e = headU arr
  
-
-
 prop_optimal :: Int
              -> (forall e s. (UA e) => Comparison e -> MUArr e s -> Int -> ST s ())
              -> Property
@@ -109,3 +109,14 @@ prop_optimal n algo = label "sorting" sortn .&. label "stability" stabn
              . unzipU
              . apply (\a -> algo (comparing fstS) a 0))
          $ stability n
+
+type Bag e = M.Map e Int
+
+toBag :: (UA e, Ord e) => UArr e -> Bag e
+toBag = M.fromListWith (+) . flip zip (repeat 1) . fromU
+
+prop_permutation :: (UA e, Ord e)
+                 => (forall s. MUArr e s -> ST s ())
+                 -> UArr e -> Property
+prop_permutation algo arr = property $ 
+                            toBag arr == toBag (apply algo arr)
