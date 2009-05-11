@@ -25,6 +25,9 @@ import qualified Data.Array.Vector.Algorithms.Radix     as R
 import qualified Data.Array.Vector.Algorithms.TriHeap   as TH
 import qualified Data.Array.Vector.Algorithms.Optimal   as O
 
+type Algo e = forall s. MUArr e s -> ST s ()
+type SizeAlgo e = forall s. MUArr e s -> Int -> ST s ()
+
 args = stdArgs
        { maxSuccess = 300
        , maxDiscard = 200
@@ -33,7 +36,7 @@ args = stdArgs
 check_Int_sort = forM_ algos $ \(name,algo) ->
   quickCheckWith args (label name . prop_fullsort algo)
  where
- algos :: [(String, forall s. MUArr Int s -> ST s ())]
+ algos :: [(String, Algo Int)]
  algos = [ ("introsort", INT.sort)
          , ("insertion sort", INS.sort)
          , ("merge sort", M.sort)
@@ -43,7 +46,7 @@ check_Int_sort = forM_ algos $ \(name,algo) ->
 check_Int_partialsort = forM_ algos $ \(name,algo) ->
   quickCheckWith args (label name . prop_partialsort algo)
  where
- algos :: [(String, forall s. MUArr Int s -> Int -> ST s ())]
+ algos :: [(String, SizeAlgo Int)]
  algos = [ ("intro-partialsort", INT.partialSort)
          , ("tri-heap partialsort", TH.partialSort)
          ]
@@ -51,24 +54,23 @@ check_Int_partialsort = forM_ algos $ \(name,algo) ->
 check_Int_select = forM_ algos $ \(name,algo) ->
   quickCheckWith args (label name . prop_select algo)
  where
- algos :: [(String, forall s. MUArr Int s -> Int -> ST s ())]
+ algos :: [(String, SizeAlgo Int)]
  algos = [ ("intro-select", INT.select)
          , ("tri-heap select", TH.select)
          ]
 
 check_radix_sorts = do
-  qc (label "Word8"  . prop_fullsort (R.sort :: MUArr Word8 s  -> ST s ()))
-  qc (label "Word16" . prop_fullsort (R.sort :: MUArr Word16 s -> ST s ()))
-  qc (label "Word32" . prop_fullsort (R.sort :: MUArr Word32 s -> ST s ()))
-  qc (label "Word64" . prop_fullsort (R.sort :: MUArr Word64 s -> ST s ()))
-  qc (label "Word"   . prop_fullsort (R.sort :: MUArr Word s   -> ST s ()))
-  qc (label "Int8"   . prop_fullsort (R.sort :: MUArr Int8 s   -> ST s ()))
-  qc (label "Int16"  . prop_fullsort (R.sort :: MUArr Int16 s  -> ST s ()))
-  qc (label "Int32"  . prop_fullsort (R.sort :: MUArr Int32 s  -> ST s ()))
-  qc (label "Int64"  . prop_fullsort (R.sort :: MUArr Int64 s  -> ST s ()))
-  qc (label "Int"    . prop_fullsort (R.sort :: MUArr Int s    -> ST s ()))
-  qc (label "Int :*: Int"
-        . prop_fullsort (R.sort :: MUArr (Int :*: Int) s -> ST s ()))
+  qc (label "Word8"       . prop_fullsort (R.sort :: Algo Word8))
+  qc (label "Word16"      . prop_fullsort (R.sort :: Algo Word16))
+  qc (label "Word32"      . prop_fullsort (R.sort :: Algo Word32))
+  qc (label "Word64"      . prop_fullsort (R.sort :: Algo Word64))
+  qc (label "Word"        . prop_fullsort (R.sort :: Algo Word))
+  qc (label "Int8"        . prop_fullsort (R.sort :: Algo Int8))
+  qc (label "Int16"       . prop_fullsort (R.sort :: Algo Int16))
+  qc (label "Int32"       . prop_fullsort (R.sort :: Algo Int32))
+  qc (label "Int64"       . prop_fullsort (R.sort :: Algo Int64))
+  qc (label "Int"         . prop_fullsort (R.sort :: Algo Int))
+  qc (label "Int :*: Int" . prop_fullsort (R.sort :: Algo (Int :*: Int)))
  where
  qc algo = quickCheckWith args algo
 
