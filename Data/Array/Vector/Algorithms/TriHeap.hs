@@ -82,7 +82,9 @@ selectBy cmp a k = selectByBounds cmp a k 0 (lengthMU a)
 -- array into the positions [l,k+l). The elements will be in
 -- no particular order.
 selectByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
-selectByBounds cmp a k l u = heapify cmp a l (l + k) >> go l (l + k) (u - 1)
+selectByBounds cmp a k l u
+  | l + k <= u = heapify cmp a l (l + k) >> go l (l + k) (u - 1)
+  | otherwise  = return ()
  where
  go l m u
    | u < m      = return ()
@@ -108,11 +110,22 @@ partialSortBy cmp a k = partialSortByBounds cmp a k 0 (lengthMU a)
 -- | Moves the lowest k elements in the portion [l,u) of the array
 -- into positions [l,k+l), sorted.
 partialSortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
-partialSortByBounds cmp a k l u = do selectByBounds cmp a k l u
-                                     sortHeap cmp a l (l + 4) (l + k)
-                                     O.sort4ByOffset cmp a l
-                                     -- this technically does extra work for k < 4, but
-                                     -- I'm not sure that's a significant concern.
+partialSortByBounds cmp a k l u
+  -- this potentially does more work than absolutely required,
+  -- but using a heap to find the least 2 of 4 elements
+  -- seems unlikely to be better than just sorting all of them
+  -- with an optimal sort, and the latter is obviously index
+  -- correct.
+  | len <  2   = return ()
+  | len == 2   = O.sort2ByOffset cmp a l
+  | len == 3   = O.sort3ByOffset cmp a l
+  | len == 4   = O.sort4ByOffset cmp a l
+  | u <= l + k = sortByBounds cmp a l u
+  | otherwise  = do selectByBounds cmp a k l u
+                    sortHeap cmp a l (l + 4) (l + k)
+                    O.sort4ByOffset cmp a l
+ where
+ len = u - l
 {-# INLINE partialSortByBounds #-}
 
 -- | Constructs a heap in a portion of an array [l, u)
