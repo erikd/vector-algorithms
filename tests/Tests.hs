@@ -1,4 +1,4 @@
-{-# LANGUAGE ImpredicativeTypes, Rank2Types, TypeOperators #-}
+{-# LANGUAGE ImpredicativeTypes, RankNTypes, TypeOperators #-}
 
 module Main (main) where
 
@@ -89,6 +89,32 @@ check_optimal = do qc . label "size 2" $ prop_optimal 2 O.sort2ByOffset
  where
  qc = quickCheck
 
+check_permutation = do
+  qc $ label "introsort"    . prop_permutation (INT.sort :: Algo Int)
+  qc $ label "intropartial" . prop_sized (const . prop_permutation)
+                                         (INT.partialSort :: SizeAlgo Int)
+  qc $ label "introselect"  . prop_sized (const . prop_permutation)
+                                         (INT.select :: SizeAlgo Int)
+  qc $ label "heapsort"     . prop_permutation (TH.sort :: Algo Int)
+  qc $ label "heappartial"  . prop_sized (const . prop_permutation)
+                                         (TH.partialSort :: SizeAlgo Int)
+  qc $ label "heapselect"   . prop_sized (const . prop_permutation)
+                                         (TH.select :: SizeAlgo Int)
+  qc $ label "mergesort"    . prop_permutation (M.sort :: Algo Int)
+  qc $ label "radix I8"     . prop_permutation (R.sort :: Algo Int8)
+  qc $ label "radix I16"    . prop_permutation (R.sort :: Algo Int16)
+  qc $ label "radix I32"    . prop_permutation (R.sort :: Algo Int32)
+  qc $ label "radix I64"    . prop_permutation (R.sort :: Algo Int64)
+  qc $ label "radix Int"    . prop_permutation (R.sort :: Algo Int)
+  qc $ label "radix W8"     . prop_permutation (R.sort :: Algo Word8)
+  qc $ label "radix W16"    . prop_permutation (R.sort :: Algo Word16)
+  qc $ label "radix W32"    . prop_permutation (R.sort :: Algo Word32)
+  qc $ label "radix W64"    . prop_permutation (R.sort :: Algo Word64)
+  qc $ label "radix Word"   . prop_permutation (R.sort :: Algo Word)
+ where
+ qc prop = quickCheckWith args prop
+
+
 main = do putStrLn "Int tests:"
           check_Int_sort
           check_Int_partialsort
@@ -101,3 +127,5 @@ main = do putStrLn "Int tests:"
           check_stable
           putStrLn "Optimals:"
           check_optimal
+          putStrLn "Permutation:"
+          check_permutation
