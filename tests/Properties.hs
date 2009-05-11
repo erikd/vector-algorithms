@@ -1,4 +1,4 @@
-{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE RankNTypes #-}
 
 module Properties where
 
@@ -52,21 +52,23 @@ sanity = 100
 prop_partialsort :: (UA e, Ord e, Arbitrary e, Show e)
                  => (forall s. MUArr e s -> Int -> ST s ())
                  -> Positive Int -> Property
-prop_partialsort algo (Positive k) =
-  let k' = k `mod` sanity
-  in forAll (longGen k') $
-       prop_sorted . takeU k' . apply (\marr -> algo marr k')
-
+prop_partialsort = prop_sized $ \algo k ->
+  prop_sorted . takeU k . apply algo
 
 prop_select :: (UA e, Ord e, Arbitrary e, Show e)
             => (forall s. MUArr e s -> Int -> ST s ())
             -> Positive Int -> Property
-prop_select algo (Positive k) =
+prop_select = prop_sized $ \algo k arr ->
+  let (l, r) = splitAtU k $ apply algo arr
+  in allU (\e -> allU (e <=) r) l
+
+prop_sized :: (UA e, Arbitrary e, Show e, Testable prop)
+           => ((forall s. MUArr e s -> ST s ()) -> Int -> UArr e -> prop)
+           -> (forall s. MUArr e s -> Int -> ST s ())
+           -> Positive Int -> Property
+prop_sized prop algo (Positive k) =
   let k' = k `mod` sanity
-  in forAll (longGen k') $ \arr ->
-       let arr' = apply (\marr -> algo marr k') arr
-           (l, r) = splitAtU k' arr'
-       in allU (\e -> allU (e<=) r) l
+  in forAll (longGen k') $ prop (\marr -> algo marr k') k'
 
 prop_stable :: (forall e s. (UA e) => Comparison e -> MUArr e s -> ST s ())
             -> UArr Int -> Property
