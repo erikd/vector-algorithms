@@ -36,5 +36,4 @@ Library
 
     GHC-Options:
         -O2
-        -fvia-C -optc-O3
         -funbox-strict-fields
