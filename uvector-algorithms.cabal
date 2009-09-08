@@ -11,7 +11,7 @@ Description:       Efficient algorithms for uvector unboxed arrays
                    be sure to compile with -O2, and -fvia-C -optc-O3 is
                    recommended.
 Build-Type:        Simple
-Cabal-Version:     >= 1.2
+Cabal-Version:     >= 1.2.3
 
 Library
     Build-Depends: base, uvector >= 0.1.0.4
