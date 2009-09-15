@@ -23,6 +23,7 @@ Library
         Data.Array.Vector.Algorithms.Intro
         Data.Array.Vector.Algorithms.Merge
         Data.Array.Vector.Algorithms.Radix
+        Data.Array.Vector.Algorithms.Search
         Data.Array.Vector.Algorithms.TriHeap
 
     Other-Modules:

@@ -13,7 +13,7 @@ import Data.Ord
 import Data.Array.Vector
 
 import Data.Array.Vector.Algorithms.Optimal (Comparison)
-import Data.Array.Vector.Algorithms.Radix
+import Data.Array.Vector.Algorithms.Radix (radix, passes, size)
 import Data.Array.Vector.Algorithms.Combinators
 
 import qualified Data.Map as M
@@ -120,3 +120,35 @@ prop_permutation :: (UA e, Ord e)
                  -> UArr e -> Property
 prop_permutation algo arr = property $ 
                             toBag arr == toBag (apply algo arr)
+
+newtype SortedArr e = Sorted (UArr e)
+
+instance (Show e, UA e) => Show (SortedArr e) where
+  show (Sorted a) = show a
+
+instance (Arbitrary e, UA e, Ord e) => Arbitrary (SortedArr e) where
+  arbitrary = fmap (Sorted . toU . sort) arbitrary
+
+ixRanges :: (UA e) => UArr e -> Gen (Int, Int)
+ixRanges arr = do i <- fmap (`mod` len) arbitrary
+                  j <- fmap (`mod` len) arbitrary
+                  return $ if i < j then (i, j) else (j, i)
+ where len = lengthU arr
+
+prop_search_inrange :: (UA e, Ord e)
+                    => (forall s. MUArr e s -> e -> Int -> Int -> ST s Int)
+                    -> SortedArr e -> e -> Property
+prop_search_inrange algo (Sorted arr) e = forAll (ixRanges arr) $ \(i, j) ->
+  let k = runST (newMU len >>= \marr -> copyMU marr len arr >> algo marr e i j)
+  in property $ i <= k && k <= j
+ where
+ len = lengthU arr
+
+prop_search_lowbound :: (UA e, Ord e)
+                     => (forall s. MUArr e s -> e -> ST s Int)
+                     -> SortedArr e -> e -> Property
+prop_search_lowbound algo (Sorted arr) e = property $ (k == 0   || indexU arr (k-1) < e)
+                                                   && (k == len || indexU arr k >= e)
+ where
+ len = lengthU arr
+ k = runST (newMU len >>= \marr -> copyMU marr len arr >> algo marr e)
