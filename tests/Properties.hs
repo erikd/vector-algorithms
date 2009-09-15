@@ -127,7 +127,7 @@ instance (Show e, UA e) => Show (SortedArr e) where
   show (Sorted a) = show a
 
 instance (Arbitrary e, UA e, Ord e) => Arbitrary (SortedArr e) where
-  arbitrary = fmap (Sorted . toU . sort) arbitrary
+  arbitrary = fmap (Sorted . toU . sort) $ liftM2 (++) (vectorOf 20 arbitrary) arbitrary
 
 ixRanges :: (UA e) => UArr e -> Gen (Int, Int)
 ixRanges arr = do i <- fmap (`mod` len) arbitrary
@@ -139,7 +139,7 @@ prop_search_inrange :: (UA e, Ord e)
                     => (forall s. MUArr e s -> e -> Int -> Int -> ST s Int)
                     -> SortedArr e -> e -> Property
 prop_search_inrange algo (Sorted arr) e = forAll (ixRanges arr) $ \(i, j) ->
-  let k = runST (newMU len >>= \marr -> copyMU marr len arr >> algo marr e i j)
+  let k = runST (newMU len >>= \marr -> copyMU marr 0 arr >> algo marr e i j)
   in property $ i <= k && k <= j
  where
  len = lengthU arr
@@ -151,4 +151,4 @@ prop_search_lowbound algo (Sorted arr) e = property $ (k == 0   || indexU arr (k
                                                    && (k == len || indexU arr k >= e)
  where
  len = lengthU arr
- k = runST (newMU len >>= \marr -> copyMU marr len arr >> algo marr e)
+ k = runST (newMU len >>= \marr -> copyMU marr 0 arr >> algo marr e)
