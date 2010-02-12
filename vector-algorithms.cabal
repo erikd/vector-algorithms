@@ -25,6 +25,7 @@ Library
         Data.Vector.Algorithms.Insertion
         Data.Vector.Algorithms.Intro
         Data.Vector.Algorithms.Merge
+        Data.Vector.Algorithms.Radix
         Data.Vector.Algorithms.TriHeap
 
     Other-Modules:

@@ -35,11 +35,15 @@
 
 module Data.Vector.Algorithms.Radix (sort, sortBy, Radix(..)) where
 
-import Control.Monad
-import Control.Monad.ST
+import Prelude hiding (read, length)
 
-import Data.Array.Vector
-import Data.Array.Vector.Algorithms.Common
+import Control.Monad
+import Control.Monad.Primitive
+
+import qualified Data.Vector.Primitive.Mutable as PV
+import Data.Vector.Generic.Mutable
+
+import Data.Vector.Algorithms.Common (Comparison)
 
 import Data.Bits
 import Data.Int
@@ -48,7 +52,7 @@ import Data.Word
 
 import Foreign.Storable
 
-class UA e => Radix e where
+class Radix e where
   -- | The number of passes necessary to sort an array of es
   passes :: e -> Int
   -- | The size of an auxiliary array
@@ -163,17 +167,18 @@ instance Radix Word64 where
   radix 7 e = fromIntegral ((e `shiftR` 56) .&. 255)
   {-# INLINE radix #-}
 
-instance (Radix i, Radix j) => Radix (i :*: j) where
-  passes ~(i :*: j) = passes i + passes j
+instance (Radix i, Radix j) => Radix (i, j) where
+  passes ~(i, j) = passes i + passes j
   {-# INLINE passes #-}
-  size   ~(i :*: j) = size i `max` size j
+  size   ~(i, j) = size i `max` size j
   {-# INLINE size #-}
-  radix k ~(i :*: j) | k < passes j = radix k j
+  radix k ~(i, j) | k < passes j = radix k j
                      | otherwise    = radix (k - passes j) i
   {-# INLINE radix #-}
 
 -- | Sorts an array based on the Radix instance.
-sort :: forall e s. Radix e => MUArr e s -> ST s ()
+sort :: forall e m v. (PrimMonad m, MVector v e, Radix e)
+     => v (PrimState m) e -> m ()
 sort arr = sortBy (passes e) (size e) radix arr
  where
  e :: e
@@ -186,92 +191,92 @@ sort arr = sortBy (passes e) (size e) radix arr
 -- one greater than the maximum value returned by the radix
 -- function), and a radix function, which takes the pass
 -- and an element, and returns the relevant radix.
-sortBy :: (UA e) => Int               -- ^ the number of passes
-                 -> Int               -- ^ the size of auxiliary arrays
-                 -> (Int -> e -> Int) -- ^ the radix function
-                 -> MUArr e s         -- ^ the array to be sorted
-                 -> ST s ()
+sortBy :: (PrimMonad m, MVector v e)
+       => Int               -- ^ the number of passes
+       -> Int               -- ^ the size of auxiliary arrays
+       -> (Int -> e -> Int) -- ^ the radix function
+       -> v (PrimState m) e -- ^ the array to be sorted
+       -> m ()
 sortBy passes size rdx arr = do
-  tmp    <- newMU (lengthMU arr)
-  count  <- newMU (size)
-  prefix <- newMU (size)
+  tmp    <- new (length arr)
+  count  <- new size
+  prefix <- new size
   radixLoop passes rdx arr tmp count prefix
 {-# INLINE sortBy #-}
 
-radixLoop :: (UA e) => Int               -- passes
-                    -> (Int -> e -> Int) -- radix function
-                    -> MUArr e s         -- array to sort
-                    -> MUArr e s         -- temporary array
-                    -> MUArr Int s       -- radix count array
-                    -> MUArr Int s       -- placement array
-                    -> ST s ()
+radixLoop :: (PrimMonad m, MVector v e)
+          => Int                          -- passes
+          -> (Int -> e -> Int)            -- radix function
+          -> v (PrimState m) e            -- array to sort
+          -> v (PrimState m) e            -- temporary array
+          -> PV.MVector (PrimState m) Int -- radix count array
+          -> PV.MVector (PrimState m) Int -- placement array
+          -> m ()
 radixLoop passes rdx src dst count prefix = go False 0
  where
- len = lengthMU src
+ len = length src
  go swap k
    | k < passes = if swap
                     then body rdx dst src count prefix k >> go (not swap) (k+1)
                     else body rdx src dst count prefix k >> go (not swap) (k+1)
-   | otherwise  = when swap (mcopyMU dst src 0 0 len)
+   | otherwise  = when swap (copy dst src)
 {-# INLINE radixLoop #-}
 
-body :: (UA e) => (Int -> e -> Int) -- radix function
-               -> MUArr e s         -- source array
-               -> MUArr e s         -- destination array
-               -> MUArr Int s       -- radix count
-               -> MUArr Int s       -- placement
-               -> Int               -- current pass
-               -> ST s ()
+body :: (PrimMonad m, MVector v e)
+     => (Int -> e -> Int)            -- radix function
+     -> v (PrimState m) e            -- source array
+     -> v (PrimState m) e            -- destination array
+     -> PV.MVector (PrimState m) Int -- radix count
+     -> PV.MVector (PrimState m) Int -- placement
+     -> Int                          -- current pass
+     -> m ()
 body rdx src dst count prefix k = do
-  zero count
+  set count 0
   countLoop k rdx src count
-  writeMU prefix 0 0
+  write prefix 0 0
   prefixLoop count prefix
   moveLoop k rdx src dst prefix
 {-# INLINE body #-}
 
-zero :: MUArr Int s -> ST s ()
-zero a = go 0
- where
- len = lengthMU a
- go i
-   | i < len   = writeMU a i 0 >> go (i+1)
-   | otherwise = return ()
-{-# INLINE zero #-}
-
-countLoop :: (UA e) => Int -> (Int -> e -> Int) -> MUArr e s -> MUArr Int s -> ST s ()
+countLoop :: (PrimMonad m, MVector v e)
+          => Int -> (Int -> e -> Int)
+          -> v (PrimState m) e -> PV.MVector (PrimState m) Int -> m ()
 countLoop k rdx src count = go 0
  where
- len = lengthMU src
+ len = length src
  go i
-   | i < len    = readMU src i >>= inc count . rdx k >> go (i+1)
+   | i < len    = read src i >>= inc count . rdx k >> go (i+1)
    | otherwise  = return ()
 {-# INLINE countLoop #-}
 
-prefixLoop :: MUArr Int s -> MUArr Int s -> ST s ()
+prefixLoop :: (PrimMonad m)
+           => PV.MVector (PrimState m) Int -> PV.MVector (PrimState m) Int
+           -> m ()
 prefixLoop count prefix = go 1 0
  where
- len = lengthMU count
+ len = length count
  go i pi
-   | i < len   = do ci <- readMU count (i-1)
+   | i < len   = do ci <- unsafeRead count (i-1)
                     let pi' = pi + ci
-                    writeMU prefix i pi'
+                    unsafeWrite prefix i pi'
                     go (i+1) pi'
    | otherwise = return ()
 {-# INLINE prefixLoop #-}
 
-moveLoop :: (UA e) => Int -> (Int -> e -> Int) -> MUArr e s -> MUArr e s -> MUArr Int s -> ST s ()
+moveLoop :: (PrimMonad m, MVector v e)
+         => Int -> (Int -> e -> Int) -> v (PrimState m) e
+         -> v (PrimState m) e -> PV.MVector (PrimState m) Int -> m ()
 moveLoop k rdx src dst prefix = go 0
  where
- len = lengthMU src
+ len = length src
  go i
-   | i < len    = do srci <- readMU src i
+   | i < len    = do srci <- read src i
                      pf   <- inc prefix (rdx k srci)
-                     writeMU dst pf srci
+                     write dst pf srci
                      go (i+1)
    | otherwise  = return ()
 {-# INLINE moveLoop #-}
 
-inc :: MUArr Int s -> Int -> ST s Int
-inc arr i = readMU arr i >>= \e -> writeMU arr i (e+1) >> return e
+inc :: (PrimMonad m) => PV.MVector (PrimState m) Int -> Int -> m Int
+inc arr i = unsafeRead arr i >>= \e -> unsafeWrite arr i (e+1) >> return e
 {-# INLINE inc #-}
