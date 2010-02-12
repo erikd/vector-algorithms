@@ -20,25 +20,29 @@ module Data.Vector.Algorithms.Insertion
        ) where
 
 
-import Control.Monad.ST
+import Prelude hiding (read, length)
 
-import Data.Array.Vector
-import Data.Array.Vector.Algorithms.Common
+import Control.Monad.Primitive
 
-import qualified Data.Array.Vector.Algorithms.Optimal as O
+import Data.Vector.Generic.Mutable
+
+import qualified Data.Vector.Algorithms.Optimal as O
+
+type Comparison e = e -> e -> Ordering
 
 -- | Sorts an entire array using the default comparison for the type
-sort :: (UA e, Ord e) => MUArr e s -> ST s ()
+sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
 {-# INLINE sort #-}
 
 -- | Sorts an entire array using a given comparison
-sortBy :: (UA e) => Comparison e -> MUArr e s -> ST s ()
-sortBy cmp a = sortByBounds cmp a 0 (lengthMU a)
+sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
+sortBy cmp a = sortByBounds cmp a 0 (length a)
 {-# INLINE sortBy #-}
 
 -- | Sorts the portion of an array delimited by [l,u)
-sortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> ST s ()
+sortByBounds :: (PrimMonad m, MVector v e)
+             => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
 sortByBounds cmp a l u
   | len < 2   = return ()
   | len == 2  = O.sort2ByOffset cmp a l
@@ -51,11 +55,12 @@ sortByBounds cmp a l u
 
 -- | Sorts the portion of the array delimited by [l,u) under the assumption
 -- that [l,m) is already sorted.
-sortByBounds' :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+sortByBounds' :: (PrimMonad m, MVector v e)
+              => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 sortByBounds' cmp a l m u = sort m
  where
  sort i
-   | i < u     = do v <- readMU a i
+   | i < u     = do v <- read a i
                     insert cmp a l v i
                     sort (i+1)
    | otherwise = return ()
@@ -63,13 +68,14 @@ sortByBounds' cmp a l m u = sort m
 
 -- Given a sorted array in [l,u), inserts val into its proper position,
 -- yielding a sorted [l,u]
-insert :: (UA e) => Comparison e -> MUArr e s -> Int -> e -> Int -> ST s ()
+insert :: (PrimMonad m, MVector v e)
+       => Comparison e -> v (PrimState m) e -> Int -> e -> Int -> m ()
 insert cmp a l = loop
  where
  loop val j
-   | j <= l    = writeMU a l val
-   | otherwise = do e <- readMU a (j - 1)
+   | j <= l    = write a l val
+   | otherwise = do e <- read a (j - 1)
                     case cmp val e of
-                      LT -> writeMU a j e >> loop val (j - 1)
-                      _  -> writeMU a j val
+                      LT -> write a j e >> loop val (j - 1)
+                      _  -> write a j val
 {-# INLINE insert #-}
