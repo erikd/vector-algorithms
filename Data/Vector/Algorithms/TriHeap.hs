@@ -36,26 +36,30 @@ module Data.Vector.Algorithms.TriHeap
        , Comparison
        ) where
 
+import Prelude hiding (read, length)
+
 import Control.Monad
-import Control.Monad.ST
+import Control.Monad.Primitive
 
-import Data.Array.Vector
-import Data.Array.Vector.Algorithms.Common
+import Data.Vector.Generic.Mutable
 
-import qualified Data.Array.Vector.Algorithms.Optimal as O
+import Data.Vector.Algorithms.Common (swap, Comparison)
+
+import qualified Data.Vector.Algorithms.Optimal as O
 
 -- | Sorts an entire array using the default ordering.
-sort :: (UA e, Ord e) => MUArr e s -> ST s ()
+sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
 {-# INLINE sort #-}
 
 -- | Sorts an entire array using a custom ordering.
-sortBy :: (UA e) => Comparison e -> MUArr e s -> ST s ()
-sortBy cmp a = sortByBounds cmp a 0 (lengthMU a)
+sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
+sortBy cmp a = sortByBounds cmp a 0 (length a)
 {-# INLINE sortBy #-}
 
 -- | Sorts a portion of an array [l,u) using a custom ordering
-sortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> ST s ()
+sortByBounds :: (PrimMonad m, MVector v e)
+             => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
 sortByBounds cmp a l u
   | len < 2   = return ()
   | len == 2  = O.sort2ByOffset cmp a l
@@ -67,29 +71,30 @@ sortByBounds cmp a l u
 
 -- | Moves the lowest k elements to the front of the array.
 -- The elements will be in no particular order.
-select :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+select :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
 select = selectBy compare
 {-# INLINE select #-}
 
 -- | Moves the 'lowest' (as defined by the comparison) k elements
 -- to the front of the array. The elements will be in no particular
 -- order.
-selectBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
-selectBy cmp a k = selectByBounds cmp a k 0 (lengthMU a)
+selectBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> Int -> m ()
+selectBy cmp a k = selectByBounds cmp a k 0 (length a)
 {-# INLINE selectBy #-}
 
 -- | Moves the 'lowest' k elements in the portion [l,u) of the
 -- array into the positions [l,k+l). The elements will be in
 -- no particular order.
-selectByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+selectByBounds :: (PrimMonad m, MVector v e)
+               => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 selectByBounds cmp a k l u
   | l + k <= u = heapify cmp a l (l + k) >> go l (l + k) (u - 1)
   | otherwise  = return ()
  where
  go l m u
    | u < m      = return ()
-   | otherwise  = do el <- readMU a l
-                     eu <- readMU a u
+   | otherwise  = do el <- read a l
+                     eu <- read a u
                      case cmp eu el of
                        LT -> popTo cmp a l m u
                        _  -> return ()
@@ -97,19 +102,21 @@ selectByBounds cmp a k l u
 {-# INLINE selectByBounds #-}
 
 -- | Moves the lowest k elements to the front of the array, sorted.
-partialSort :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+partialSort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
 partialSort = partialSortBy compare
 {-# INLINE partialSort #-}
 
 -- | Moves the lowest k elements (as defined by the comparison) to
 -- the front of the array, sorted.
-partialSortBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
-partialSortBy cmp a k = partialSortByBounds cmp a k 0 (lengthMU a)
+partialSortBy :: (PrimMonad m, MVector v e)
+              => Comparison e -> v (PrimState m) e -> Int -> m ()
+partialSortBy cmp a k = partialSortByBounds cmp a k 0 (length a)
 {-# INLINE partialSortBy #-}
 
 -- | Moves the lowest k elements in the portion [l,u) of the array
 -- into positions [l,k+l), sorted.
-partialSortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+partialSortByBounds :: (PrimMonad m, MVector v e)
+                    => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 partialSortByBounds cmp a k l u
   -- this potentially does more work than absolutely required,
   -- but using a heap to find the least 2 of 4 elements
@@ -129,34 +136,38 @@ partialSortByBounds cmp a k l u
 {-# INLINE partialSortByBounds #-}
 
 -- | Constructs a heap in a portion of an array [l, u)
-heapify :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> ST s ()
+heapify :: (PrimMonad m, MVector v e)
+        => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
 heapify cmp a l u = loop $ (len - 1) `div` 3
   where
  len = u - l
  loop k
    | k < 0     = return ()
-   | otherwise = readMU a (l+k) >>= \e -> siftByOffset cmp a e l k len >> loop (k - 1)
+   | otherwise = read a (l+k) >>= \e -> siftByOffset cmp a e l k len >> loop (k - 1)
 {-# INLINE heapify #-}
 
 -- | Given a heap stored in a portion of an array [l,u), swaps the
 -- top of the heap with the element at u and rebuilds the heap.
-pop :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> ST s ()
+pop :: (PrimMonad m, MVector v e)
+    => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
 pop cmp a l u = popTo cmp a l u u
 {-# INLINE pop #-}
 
 -- | Given a heap stored in a portion of an array [l,u) swaps the top
 -- of the heap with the element at position t, and rebuilds the heap.
-popTo :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
-popTo cmp a l u t = do al <- readMU a l
-                       at <- readMU a t
-                       writeMU a t al
+popTo :: (PrimMonad m, MVector v e)
+      => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
+popTo cmp a l u t = do al <- read a l
+                       at <- read a t
+                       write a t al
                        siftByOffset cmp a at l 0 (u - l)
 {-# INLINE popTo #-}
 
 -- | Given a heap stored in a portion of an array [l,u), sorts the
 -- highest values into [m,u). The elements in [l,m) are not in any
 -- particular order.
-sortHeap :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+sortHeap :: (PrimMonad m, MVector v e)
+         => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 sortHeap cmp a l m u = loop (u-1) >> swap a l m
  where
  loop k
@@ -167,37 +178,39 @@ sortHeap cmp a l m u = loop (u-1) >> swap a l m
 -- Rebuilds a heap with a hole in it from start downwards. Afterward,
 -- the heap property should apply for [start + off, len + off). val
 -- is the new value to be put in the hole.
-siftByOffset :: (UA e) => Comparison e -> MUArr e s -> e -> Int -> Int -> Int -> ST s ()
+siftByOffset :: (PrimMonad m, MVector v e)
+             => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> Int -> m ()
 siftByOffset cmp a val off start len = sift val start len
  where
  sift val root len
-   | child < len = do (child' :*: ac) <- maximumChild cmp a off child len
+   | child < len = do (child', ac) <- maximumChild cmp a off child len
                       case cmp val ac of
-                        LT -> writeMU a (root + off) ac >> sift val child' len
-                        _  -> writeMU a (root + off) val
-   | otherwise = writeMU a (root + off) val
+                        LT -> write a (root + off) ac >> sift val child' len
+                        _  -> write a (root + off) val
+   | otherwise = write a (root + off) val
   where child = root * 3 + 1
 {-# INLINE siftByOffset #-}
 
 -- Finds the maximum child of a heap node, given the indx of the first child.
-maximumChild :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s (Int :*: e)
+maximumChild :: (PrimMonad m, MVector v e)
+             => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m (Int,  e)
 maximumChild cmp a off child1 len
-  | child3 < len = do ac1 <- readMU a (child1 + off)
-                      ac2 <- readMU a (child2 + off)
-                      ac3 <- readMU a (child3 + off)
+  | child3 < len = do ac1 <- read a (child1 + off)
+                      ac2 <- read a (child2 + off)
+                      ac3 <- read a (child3 + off)
                       return $ case cmp ac1 ac2 of
                                  LT -> case cmp ac2 ac3 of
-                                         LT -> child3 :*: ac3
-                                         _  -> child2 :*: ac2
+                                         LT -> (child3, ac3)
+                                         _  -> (child2, ac2)
                                  _  -> case cmp ac1 ac3 of
-                                         LT -> child3 :*: ac3
-                                         _  -> child1 :*: ac1
-  | child2 < len = do ac1 <- readMU a (child1 + off)
-                      ac2 <- readMU a (child2 + off)
+                                         LT -> (child3, ac3)
+                                         _  -> (child1, ac1)
+  | child2 < len = do ac1 <- read a (child1 + off)
+                      ac2 <- read a (child2 + off)
                       return $ case cmp ac1 ac2 of
-                                 LT -> child2 :*: ac2
-                                 _  -> child1 :*: ac1
-  | otherwise    = do ac1 <- readMU a (child1 + off) ; return (child1 :*: ac1)
+                                 LT -> (child2, ac2)
+                                 _  -> (child1, ac1)
+  | otherwise    = do ac1 <- read a (child1 + off) ; return (child1, ac1)
  where
  child2 = child1 + 1
  child3 = child1 + 2
