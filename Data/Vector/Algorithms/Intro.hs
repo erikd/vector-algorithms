@@ -45,29 +45,33 @@ module Data.Vector.Algorithms.Intro
        , Comparison
        ) where
 
+import Prelude hiding (read, length)
+
 import Control.Monad
-import Control.Monad.ST
+import Control.Monad.Primitive
 
-import Data.Array.Vector
-import Data.Array.Vector.Algorithms.Common
 import Data.Bits
+import Data.Vector.Generic.Mutable
 
-import qualified Data.Array.Vector.Algorithms.Insertion as I
-import qualified Data.Array.Vector.Algorithms.Optimal   as O
-import qualified Data.Array.Vector.Algorithms.TriHeap   as H
+import Data.Vector.Algorithms.Common (swap, Comparison)
+
+import qualified Data.Vector.Algorithms.Insertion as I
+import qualified Data.Vector.Algorithms.Optimal   as O
+import qualified Data.Vector.Algorithms.TriHeap   as H
 
 -- | Sorts an entire array using the default ordering.
-sort :: (UA e, Ord e) => MUArr e s -> ST s ()
+sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
 {-# INLINE sort #-}
 
 -- | Sorts an entire array using a custom ordering.
-sortBy :: (UA e) => Comparison e -> MUArr e s -> ST s ()
-sortBy cmp a = sortByBounds cmp a 0 (lengthMU a)
+sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
+sortBy cmp a = sortByBounds cmp a 0 (length a)
 {-# INLINE sortBy #-}
 
 -- | Sorts a portion of an array [l,u) using a custom ordering
-sortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> ST s ()
+sortByBounds :: (PrimMonad m, MVector v e)
+             => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
 sortByBounds cmp a l u
   | len < 2   = return ()
   | len == 2  = O.sort2ByOffset cmp a l
@@ -79,14 +83,15 @@ sortByBounds cmp a l u
 
 -- Internal version of the introsort loop which allows partial
 -- sort functions to call with a specified bound on iterations.
-introsort :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+introsort :: (PrimMonad m, MVector v e)
+          => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 introsort cmp a i l u = sort i l u >> I.sortByBounds cmp a l u
  where
  sort 0 l u = H.sortByBounds cmp a l u
  sort d l u
    | len < threshold = return ()
    | otherwise = do O.sort3ByIndex cmp a c l (u-1) -- sort the median into the lowest position
-                    p <- readMU a l
+                    p <- read a l
                     mid <- partitionBy cmp a p (l+1) u
                     swap a l (mid - 1)
                     sort (d-1) mid u
@@ -98,25 +103,27 @@ introsort cmp a i l u = sort i l u >> I.sortByBounds cmp a l u
 
 -- | Moves the least k elements to the front of the array in
 -- no particular order.
-select :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+select :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
 select = selectBy compare
 {-# INLINE select #-}
 
 -- | Moves the least k elements (as defined by the comparison) to
 -- the front of the array in no particular order.
-selectBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
-selectBy cmp a k = selectByBounds cmp a k 0 (lengthMU a)
+selectBy :: (PrimMonad m, MVector v e)
+         => Comparison e -> v (PrimState m) e -> Int -> m ()
+selectBy cmp a k = selectByBounds cmp a k 0 (length a)
 {-# INLINE selectBy #-}
 
 -- | Moves the least k elements in the interval [l,u) to the positions
 -- [l,k+l) in no particular order.
-selectByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+selectByBounds :: (PrimMonad m, MVector v e)
+               => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 selectByBounds cmp a k l u = go (ilg len) l (l + k) u
  where
  len = u - l
  go 0 l m u = H.selectByBounds cmp a (m - l) l u
  go n l m u = do O.sort3ByIndex cmp a c l (u-1)
-                 p <- readMU a l
+                 p <- read a l
                  mid <- partitionBy cmp a p (l+1) u
                  swap a l (mid - 1)
                  if m > mid
@@ -128,19 +135,21 @@ selectByBounds cmp a k l u = go (ilg len) l (l + k) u
 {-# INLINE selectByBounds #-}
 
 -- | Moves the least k elements to the front of the array, sorted.
-partialSort :: (UA e, Ord e) => MUArr e s -> Int -> ST s ()
+partialSort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
 partialSort = partialSortBy compare
 {-# INLINE partialSort #-}
 
 -- | Moves the least k elements (as defined by the comparison) to
 -- the front of the array, sorted.
-partialSortBy :: (UA e) => Comparison e -> MUArr e s -> Int -> ST s ()
-partialSortBy cmp a k = partialSortByBounds cmp a k 0 (lengthMU a)
+partialSortBy :: (PrimMonad m, MVector v e)
+              => Comparison e -> v (PrimState m) e -> Int -> m ()
+partialSortBy cmp a k = partialSortByBounds cmp a k 0 (length a)
 {-# INLINE partialSortBy #-}
 
 -- | Moves the least k elements in the interval [l,u) to the positions
 -- [l,k+l), sorted.
-partialSortByBounds :: (UA e) => Comparison e -> MUArr e s -> Int -> Int -> Int -> ST s ()
+partialSortByBounds :: (PrimMonad m, MVector v e)
+                    => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
  where
  len = u - l
@@ -148,7 +157,7 @@ partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
  go n l m u
    | l == m    = return ()
    | otherwise = do O.sort3ByIndex cmp a c l (u-1)
-                    p <- readMU a l
+                    p <- read a l
                     mid <- partitionBy cmp a p (l+1) u
                     swap a l (mid - 1)
                     case compare m mid of
@@ -159,17 +168,18 @@ partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
   where c = (u + l) `div` 2
 {-# INLINE partialSortByBounds #-}
 
-partitionBy :: (UA e) => Comparison e -> MUArr e s -> e -> Int -> Int -> ST s Int
+partitionBy :: (PrimMonad m, MVector v e)
+            => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 partitionBy cmp a = partUp
  where
  partUp p l u
-   | l < u = do e <- readMU a l
+   | l < u = do e <- read a l
                 case cmp e p of
                   LT -> partUp p (l+1) u
                   _  -> partDown p l (u-1)
    | otherwise = return l
  partDown p l u
-   | l < u = do e <- readMU a u
+   | l < u = do e <- read a u
                 case cmp p e of
                   LT -> partDown p l (u-1)
                   _  -> swap a l u >> partUp p (l+1) u
