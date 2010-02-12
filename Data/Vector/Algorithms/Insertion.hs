@@ -26,9 +26,9 @@ import Control.Monad.Primitive
 
 import Data.Vector.Generic.Mutable
 
-import qualified Data.Vector.Algorithms.Optimal as O
+import Data.Vector.Algorithms.Common (Comparison)
 
-type Comparison e = e -> e -> Ordering
+import qualified Data.Vector.Algorithms.Optimal as O
 
 -- | Sorts an entire array using the default comparison for the type
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()

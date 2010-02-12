@@ -37,7 +37,7 @@ import Control.Monad.Primitive
 
 import Data.Vector.Generic.Mutable
 
-type Comparison e = e -> e -> Ordering
+import Data.Vector.Algorithms.Common (Comparison)
 
 -- | Sorts the elements at the positions 'off' and 'off + 1' in the given
 -- array using the comparison.
