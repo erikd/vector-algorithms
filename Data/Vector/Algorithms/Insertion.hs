@@ -1,8 +1,8 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Insertion
--- Copyright   : (c) 2008 Dan Doel
+-- Module      : Data.Vector.Algorithms.Insertion
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel
 -- Stability   : Experimental
 -- Portability : Portable
@@ -11,7 +11,7 @@
 -- beneficial for small arrays. It is used to sort small segments of an array
 -- by some of the more heavy-duty, recursive algorithms.
 
-module Data.Array.Vector.Algorithms.Insertion
+module Data.Vector.Algorithms.Insertion
        ( sort
        , sortBy
        , sortByBounds

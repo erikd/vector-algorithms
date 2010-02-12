@@ -1,14 +1,14 @@
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Common
--- Copyright   : (c) 2008 Dan Doel
+-- Module      : Data.Vector.Algorithms.Common
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel
 -- Stability   : Experimental
 -- Portability : Portable
 --
 -- Common operations and utility functions for all sorts
 
-module Data.Array.Vector.Algorithms.Common where
+module Data.Vector.Algorithms.Common where
 
 import Control.Monad.ST
 

@@ -1,7 +1,7 @@
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Merge
--- Copyright   : (c) 2008-2009 Dan Doel
+-- Module      : Data.Vector.Algorithms.Merge
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Portable
@@ -11,7 +11,7 @@
 -- the entire sorting process to ease the amount of allocation performed in
 -- total. This is a stable sort.
 
-module Data.Array.Vector.Algorithms.Merge
+module Data.Vector.Algorithms.Merge
        ( sort
        , sortBy
        , sortByBounds

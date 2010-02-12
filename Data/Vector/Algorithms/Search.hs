@@ -2,8 +2,8 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Search
--- Copyright   : (c) 2009 Dan Doel
+-- Module      : Data.Vector.Algorithms.Search
+-- Copyright   : (c) 2009-2010 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (bang patterns)
@@ -11,7 +11,7 @@
 -- This module implements several methods of searching for indicies to insert
 -- elements into a sorted array.
 
-module Data.Array.Vector.Algorithms.Search
+module Data.Vector.Algorithms.Search
        ( binarySearch
        , binarySearchBy
        , binarySearchByBounds

@@ -1,8 +1,8 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Optimal
--- Copyright   : (c) 2008 Dan Doel
+-- Module      : Data.Vector.Algorithms.Optimal
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel
 -- Stability   : Experimental
 -- Portability : Portable
@@ -21,7 +21,7 @@
 -- The LICENSE file contains the relevant copyright information for
 -- the reference C code.
 
-module Data.Array.Vector.Algorithms.Optimal
+module Data.Vector.Algorithms.Optimal
        ( sort2ByIndex
        , sort2ByOffset
        , sort3ByIndex

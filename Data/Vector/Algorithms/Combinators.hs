@@ -2,8 +2,8 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Combinators
--- Copyright   : (c) 2008-2009 Dan Doel
+-- Module      : Data.Vector.Algorithms.Combinators
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (rank-2 types)
@@ -14,7 +14,7 @@
 -- elements (but only computing said function once per element), and safely
 -- applying the algorithms on mutable arrays to immutable arrays.
 
-module Data.Array.Vector.Algorithms.Combinators
+module Data.Vector.Algorithms.Combinators
        ( apply
        , usingKeys
        , usingIxKeys

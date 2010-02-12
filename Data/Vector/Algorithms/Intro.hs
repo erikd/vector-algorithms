@@ -2,8 +2,8 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Intro
--- Copyright   : (c) 2008 Dan Doel
+-- Module      : Data.Vector.Algorithms.Intro
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (type operators, bang patterns)
@@ -29,7 +29,7 @@
 --     sort to maintain O(n lg n) worst case behavior. (This is what makes the
 --     algorithm introsort).
 
-module Data.Array.Vector.Algorithms.Intro
+module Data.Vector.Algorithms.Intro
        ( -- * Sorting
          sort
        , sortBy

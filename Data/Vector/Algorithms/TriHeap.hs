@@ -2,8 +2,8 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.TriHeap
--- Copyright   : (c) 2008-2009 Dan Doel
+-- Module      : Data.Vector.Algorithms.TriHeap
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (type operators)
@@ -15,7 +15,7 @@
 -- the number of comparisons in a heapsort slightly, and improves locality
 -- (again, slightly) by flattening out the heap.
 
-module Data.Array.Vector.Algorithms.TriHeap
+module Data.Vector.Algorithms.TriHeap
        ( -- * Sorting
          sort
        , sortBy

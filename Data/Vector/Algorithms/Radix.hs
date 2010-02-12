@@ -2,8 +2,8 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Array.Vector.Algorithms.Radix
--- Copyright   : (c) 2008-2009 Dan Doel
+-- Module      : Data.Vector.Algorithms.Radix
+-- Copyright   : (c) 2008-2010 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (scoped type variables, bang patterns)
@@ -33,7 +33,7 @@
 --
 --    > radix k e = (e `shiftR` (k*8)) .&. 256
 
-module Data.Array.Vector.Algorithms.Radix (sort, sortBy, Radix(..)) where
+module Data.Vector.Algorithms.Radix (sort, sortBy, Radix(..)) where
 
 import Control.Monad
 import Control.Monad.ST
