@@ -21,31 +21,37 @@ module Data.Vector.Algorithms.Search
        , Comparison
        ) where
 
-import Control.Monad.ST
+import Prelude hiding (read, length)
+
+import Control.Monad.Primitive
 
 import Data.Bits
 
-import Data.Array.Vector
-import Data.Array.Vector.Algorithms.Common
+import Data.Vector.Generic.Mutable
+
+import Data.Vector.Algorithms.Common (Comparison)
 
 -- | Finds an index in a givesn sorted array at which the given element could
 -- be inserted while maintaining the sortedness of the array.
-binarySearch :: (UA e, Ord e) => MUArr e s -> e -> ST s Int
+binarySearch :: (PrimMonad m, MVector v e, Ord e)
+             => v (PrimState m) e -> e -> m Int
 binarySearch = binarySearchBy compare
 
 -- | Finds an index in a given array, which must be sorted with respect to the
 -- given comparison function, at which the given element could be inserted while
 -- preserving the array's sortedness.
-binarySearchBy :: (UA e) => Comparison e -> MUArr e s -> e -> ST s Int
-binarySearchBy cmp arr e = binarySearchByBounds cmp arr e 0 (lengthMU arr)
+binarySearchBy :: (PrimMonad m, MVector v e)
+               => Comparison e -> v (PrimState m) e -> e -> m Int
+binarySearchBy cmp arr e = binarySearchByBounds cmp arr e 0 (length arr)
 
 -- | Given an array sorted with respect to a given comparison function in indices
 -- in [l,u), finds an index in [l,u] at which the given element could be inserted
 -- while preserving sortedness.
-binarySearchByBounds :: (UA e) => Comparison e -> MUArr e s -> e -> Int -> Int -> ST s Int
+binarySearchByBounds :: (PrimMonad m, MVector v e)
+                     => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 binarySearchByBounds cmp arr e l u
   | u <= l    = return l
-  | otherwise = do e' <- readMU arr k
+  | otherwise = do e' <- read arr k
                    case cmp e' e of
                      LT -> binarySearchByBounds cmp arr e (k+1) u
                      EQ -> return k
@@ -55,24 +61,26 @@ binarySearchByBounds cmp arr e l u
 
 -- | Finds the lowest index in a given sorted array at which the given element
 -- could be inserted while maintaining the sortedness.
-binarySearchL :: (UA e, Ord e) => MUArr e s -> e -> ST s Int
+binarySearchL :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> e -> m Int
 binarySearchL = binarySearchLBy compare
 {-# INLINE binarySearchL #-}
 
 -- | Finds the lowest index in a given array, which must be sorted with respect to 
 -- the given comparison function, at which the given element could be inserted
 -- while preserving the sortedness.
-binarySearchLBy :: (UA e) => Comparison e -> MUArr e s -> e -> ST s Int
-binarySearchLBy cmp arr e = binarySearchLByBounds cmp arr e 0 (lengthMU arr)
+binarySearchLBy :: (PrimMonad m, MVector v e)
+                => Comparison e -> v (PrimState m) e -> e -> m Int
+binarySearchLBy cmp arr e = binarySearchLByBounds cmp arr e 0 (length arr)
 {-# INLINE binarySearchLBy #-}
 
 -- | Given an array sorted with respect to a given comparison function on indices
 -- in [l,u), finds the lowest index in [l,u] at which the given element could be
 -- inserted while preserving sortedness.
-binarySearchLByBounds :: (UA e) => Comparison e -> MUArr e s -> e -> Int -> Int -> ST s Int
+binarySearchLByBounds :: (PrimMonad m, MVector v e)
+                      => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 binarySearchLByBounds cmp arr e !l !u
   | u <= l    = return l
-  | otherwise = do e' <- readMU arr k
+  | otherwise = do e' <- read arr k
                    case cmp e' e of
                      LT -> binarySearchLByBounds cmp arr e (k+1) u
                      _  -> binarySearchLByBounds cmp arr e l     k
