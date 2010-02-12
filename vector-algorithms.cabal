@@ -14,7 +14,7 @@ Build-Type:        Simple
 Cabal-Version:     >= 1.2.3
 
 Library
-    Build-Depends: base >= 3 && < 5, vector >= 0.5 && < 0.6
+    Build-Depends: base >= 3 && < 5, vector >= 0.5 && < 0.6, primitive >=0.2 && <0.3
 
     Exposed-Modules:
         Data.Vector.Algorithms.Combinators
