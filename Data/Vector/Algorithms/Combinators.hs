@@ -16,21 +16,27 @@
 
 module Data.Vector.Algorithms.Combinators
        ( apply
-       , usingKeys
-       , usingIxKeys
+--       , usingKeys
+--       , usingIxKeys
        ) where
+
+import Prelude hiding (length)
 
 import Control.Monad.ST
 
 import Data.Ord
 
-import Data.Array.Vector
-import Data.Array.Vector.Algorithms.Common
+import Data.Vector.Generic
+
+import qualified Data.Vector.Generic.Mutable as M
+import qualified Data.Vector.Generic.New     as N
 
 -- | Safely applies a mutable array algorithm to an immutable array.
-apply :: (UA e) => (forall s. MUArr e s -> ST s ()) -> UArr e -> UArr e
-apply algo v = newU (lengthU v) (\arr -> copyMU arr 0 v >> algo arr)
+apply :: (Vector v e) => (forall s mv. M.MVector mv e => mv s e -> ST s ()) -> v e -> v e
+apply algo v = new . N.New $
+                 M.unstream (stream v) >>= \arr -> algo arr >> return arr
 
+{-
 -- | Uses a function to compute a key for each element which the
 -- algorithm should use in lieu of the actual element. For instance:
 --
@@ -67,3 +73,4 @@ usingIxKeys algo f arr = do
    | k < 0     = return ()
    | otherwise = readMU arr k >>= writeMU keys k . f k >> fill (k-1) keys
 {-# INLINE usingIxKeys #-}
+-}
