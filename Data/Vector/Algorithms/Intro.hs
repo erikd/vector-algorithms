@@ -91,7 +91,7 @@ introsort cmp a i l u = sort i l u >> I.sortByBounds cmp a l u
  sort d l u
    | len < threshold = return ()
    | otherwise = do O.sort3ByIndex cmp a c l (u-1) -- sort the median into the lowest position
-                    p <- read a l
+                    p <- unsafeRead a l
                     mid <- partitionBy cmp a p (l+1) u
                     swap a l (mid - 1)
                     sort (d-1) mid u
@@ -123,7 +123,7 @@ selectByBounds cmp a k l u = go (ilg len) l (l + k) u
  len = u - l
  go 0 l m u = H.selectByBounds cmp a (m - l) l u
  go n l m u = do O.sort3ByIndex cmp a c l (u-1)
-                 p <- read a l
+                 p <- unsafeRead a l
                  mid <- partitionBy cmp a p (l+1) u
                  swap a l (mid - 1)
                  if m > mid
@@ -157,7 +157,7 @@ partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
  go n l m u
    | l == m    = return ()
    | otherwise = do O.sort3ByIndex cmp a c l (u-1)
-                    p <- read a l
+                    p <- unsafeRead a l
                     mid <- partitionBy cmp a p (l+1) u
                     swap a l (mid - 1)
                     case compare m mid of
@@ -173,13 +173,13 @@ partitionBy :: (PrimMonad m, MVector v e)
 partitionBy cmp a = partUp
  where
  partUp p l u
-   | l < u = do e <- read a l
+   | l < u = do e <- unsafeRead a l
                 case cmp e p of
                   LT -> partUp p (l+1) u
                   _  -> partDown p l (u-1)
    | otherwise = return l
  partDown p l u
-   | l < u = do e <- read a u
+   | l < u = do e <- unsafeRead a u
                 case cmp p e of
                   LT -> partDown p l (u-1)
                   _  -> swap a l u >> partUp p (l+1) u
