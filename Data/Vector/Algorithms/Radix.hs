@@ -219,7 +219,7 @@ radixLoop passes rdx src dst count prefix = go False 0
    | k < passes = if swap
                     then body rdx dst src count prefix k >> go (not swap) (k+1)
                     else body rdx src dst count prefix k >> go (not swap) (k+1)
-   | otherwise  = when swap (copy dst src)
+   | otherwise  = when swap (copy src dst)
 {-# INLINE radixLoop #-}
 
 body :: (PrimMonad m, MVector v e)
