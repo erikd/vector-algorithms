@@ -51,7 +51,7 @@ binarySearchByBounds :: (PrimMonad m, MVector v e)
                      => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 binarySearchByBounds cmp arr e l u
   | u <= l    = return l
-  | otherwise = do e' <- read arr k
+  | otherwise = do e' <- unsafeRead arr k
                    case cmp e' e of
                      LT -> binarySearchByBounds cmp arr e (k+1) u
                      EQ -> return k
@@ -80,7 +80,7 @@ binarySearchLByBounds :: (PrimMonad m, MVector v e)
                       => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 binarySearchLByBounds cmp arr e !l !u
   | u <= l    = return l
-  | otherwise = do e' <- read arr k
+  | otherwise = do e' <- unsafeRead arr k
                    case cmp e' e of
                      LT -> binarySearchLByBounds cmp arr e (k+1) u
                      _  -> binarySearchLByBounds cmp arr e l     k
