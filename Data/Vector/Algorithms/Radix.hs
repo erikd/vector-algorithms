@@ -233,7 +233,7 @@ body :: (PrimMonad m, MVector v e)
 body rdx src dst count prefix k = do
   set count 0
   countLoop k rdx src count
-  write prefix 0 0
+  unsafeWrite prefix 0 0
   prefixLoop count prefix
   moveLoop k rdx src dst prefix
 {-# INLINE body #-}
@@ -245,7 +245,7 @@ countLoop k rdx src count = go 0
  where
  len = length src
  go i
-   | i < len    = read src i >>= inc count . rdx k >> go (i+1)
+   | i < len    = unsafeRead src i >>= inc count . rdx k >> go (i+1)
    | otherwise  = return ()
 {-# INLINE countLoop #-}
 
@@ -270,9 +270,9 @@ moveLoop k rdx src dst prefix = go 0
  where
  len = length src
  go i
-   | i < len    = do srci <- read src i
+   | i < len    = do srci <- unsafeRead src i
                      pf   <- inc prefix (rdx k srci)
-                     write dst pf srci
+                     unsafeWrite dst pf srci
                      go (i+1)
    | otherwise  = return ()
 {-# INLINE moveLoop #-}
