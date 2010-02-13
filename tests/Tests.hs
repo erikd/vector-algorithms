@@ -1,4 +1,4 @@
-{-# LANGUAGE ImpredicativeTypes, RankNTypes, TypeOperators #-}
+{-# LANGUAGE ImpredicativeTypes, RankNTypes, TypeOperators, FlexibleContexts #-}
 
 module Main (main) where
 
@@ -14,22 +14,26 @@ import Control.Monad.ST
 import Data.Int
 import Data.Word
 
-import Data.Array.Vector
+import Data.Vector (Vector)
+import qualified Data.Vector as V
 
-import Data.Array.Vector.Algorithms.Combinators
+import Data.Vector.Generic.Mutable (MVector)
+import qualified Data.Vector.Generic.Mutable as MV
 
-import qualified Data.Array.Vector.Algorithms.Insertion as INS
-import qualified Data.Array.Vector.Algorithms.Intro     as INT
-import qualified Data.Array.Vector.Algorithms.Merge     as M
-import qualified Data.Array.Vector.Algorithms.Radix     as R
-import qualified Data.Array.Vector.Algorithms.TriHeap   as TH
-import qualified Data.Array.Vector.Algorithms.Optimal   as O
+import Data.Vector.Algorithms.Combinators
 
-import qualified Data.Array.Vector.Algorithms.Search    as SR
+import qualified Data.Vector.Algorithms.Insertion as INS
+import qualified Data.Vector.Algorithms.Intro     as INT
+import qualified Data.Vector.Algorithms.Merge     as M
+import qualified Data.Vector.Algorithms.Radix     as R
+import qualified Data.Vector.Algorithms.TriHeap   as TH
+import qualified Data.Vector.Algorithms.Optimal   as O
 
-type Algo      e r = forall s. MUArr e s -> ST s r
-type SizeAlgo  e r = forall s. MUArr e s -> Int -> ST s r
-type BoundAlgo e r = forall s. MUArr e s -> Int -> Int -> ST s r
+import qualified Data.Vector.Algorithms.Search    as SR
+
+type Algo      e r = forall s mv. MVector mv e => mv s e -> ST s r
+type SizeAlgo  e r = forall s mv. MVector mv e => mv s e -> Int -> ST s r
+type BoundAlgo e r = forall s mv. MVector mv e => mv s e -> Int -> Int -> ST s r
 
 args = stdArgs
        { maxSuccess = 300
@@ -73,15 +77,17 @@ check_radix_sorts = do
   qc (label "Int32"       . prop_fullsort (R.sort :: Algo Int32  ()))
   qc (label "Int64"       . prop_fullsort (R.sort :: Algo Int64  ()))
   qc (label "Int"         . prop_fullsort (R.sort :: Algo Int    ()))
-  qc (label "Int :*: Int" . prop_fullsort (R.sort :: Algo (Int :*: Int) ()))
+  qc (label "(Int, Int)"  . prop_fullsort (R.sort :: Algo (Int, Int) ()))
  where
  qc algo = quickCheckWith args algo
 
+{-
 check_schwartzian = do
   quickCheckWith args (prop_schwartzian i2w INS.sortBy)
  where
  i2w :: Int -> Word
  i2w = fromIntegral
+-}
 
 check_stable = do quickCheckWith args (label "merge sort" . prop_stable M.sortBy)
                   quickCheckWith args (label "radix sort" . prop_stable_radix R.sortBy)
@@ -117,7 +123,7 @@ check_permutation = do
  where
  qc prop = quickCheckWith args prop
 
-type BoundSAlgo e r = forall s. MUArr e s -> e -> Int -> Int -> ST s r
+type BoundSAlgo e r = forall s mv. MVector mv e => mv s e -> e -> Int -> Int -> ST s r
 
 check_search_range = do
   qc $ (label "binarySearchL" .) 
@@ -133,8 +139,8 @@ main = do putStrLn "Int tests:"
           check_Int_select
           putStrLn "Radix sort tests:"
           check_radix_sorts
-          putStrLn "Schwartzian transform (Int -> Word):"
-          check_schwartzian
+--          putStrLn "Schwartzian transform (Int -> Word):"
+--          check_schwartzian
           putStrLn "Stability:"
           check_stable
           putStrLn "Optimals:"

@@ -3,20 +3,28 @@
 module Util where
 
 import Control.Monad
+import Control.Monad.ST
 
 import Data.Word
 import Data.Int
 
-import Data.Array.Vector
+import qualified Data.Vector as V
+
+import Data.Vector.Mutable hiding (length)
 
 import Test.QuickCheck
 
 
-instance (Arbitrary e, UA e) => Arbitrary (UArr e) where
-  arbitrary = fmap toU arbitrary
+mfromList :: [e] -> ST s (MVector s e)
+mfromList l = do v <- new (length l)
+                 fill l 0 v
+ where
+ fill []     _ v = return v
+ fill (x:xs) i v = do write v i x
+                      fill xs (i+1) v
 
-instance (Arbitrary a, Arbitrary b) => Arbitrary (a :*: b) where
-  arbitrary = (:*:) `fmap` arbitrary `ap` arbitrary
+instance (Arbitrary e) => Arbitrary (V.Vector e) where
+  arbitrary = fmap V.fromList arbitrary
 
 instance Arbitrary Int8 where
   arbitrary = fromInteger `fmap` arbitrary

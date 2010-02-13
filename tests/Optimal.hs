@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE TypeOperators, FlexibleContexts #-}
 
 -- Exhaustive test sets for proper sorting and stability of
 -- optimal sorts
@@ -11,17 +11,13 @@ import Control.Monad
 import Data.List
 import Data.Function
 
-import Data.Array.Vector
+import Data.Vector.Generic hiding (map, zip, concatMap, (++), replicate)
 
 interleavings :: [a] -> [a] -> [[a]]
 interleavings [       ] ys        =  [ys]
 interleavings xs        [       ] =  [xs]
 interleavings xs@(x:xt) ys@(y:yt) =  map (x:) (interleavings xt ys)
                                   ++ map (y:) (interleavings xs yt)
-
-zipS [    ] _      = []
-zipS _      [    ] = []
-zipS (x:xs) (y:ys) = (x:*:y) : zipS xs ys
 
 monotones :: Int -> Int -> [[Int]]
 monotones k = atLeastOne 0
@@ -33,21 +29,21 @@ monotones k = atLeastOne 0
            | otherwise = map (i:) (picks i (n-1)) ++ atLeastOne (i+1) n
 
 
-stability :: Int -> [UArr (Int :*: Int)]
-stability n = concatMap ( map toU
+stability :: (Vector v (Int,Int)) => Int -> [v (Int, Int)]
+stability n = concatMap ( map fromList
                         . foldM interleavings []
-                        . groupBy ((==) `on` fstS)
-                        . flip zipS [0..])
+                        . groupBy ((==) `on` fst)
+                        . flip zip [0..])
               $ monotones (n-2) n
 
-sort2 :: [UArr Int]
-sort2 = map toU $ permutations [0,1]
+sort2 :: (Vector v Int) => [v Int]
+sort2 = map fromList $ permutations [0,1]
 
-stability2 :: [UArr (Int :*: Int)]
-stability2 = [toU [0 :*: 0, 0 :*: 1]]
+stability2 :: (Vector v (Int,Int)) => [v (Int, Int)]
+stability2 = [fromList [(0, 0), (0, 1)]]
 
-sort3 :: [UArr Int]
-sort3 = map toU $ permutations [0..2]
+sort3 :: (Vector v Int) => [v Int]
+sort3 = map fromList $ permutations [0..2]
 
 {-
 stability3 :: [UArr (Int :*: Int)]
@@ -61,6 +57,6 @@ stability3 = map toU [ [0:*:0, 0:*:1, 0:*:2]
                      ]
 -}
 
-sort4 :: [UArr Int]
-sort4 = map toU $ permutations [0..3]
+sort4 :: (Vector v Int) => [v Int]
+sort4 = map fromList $ permutations [0..3]
 
