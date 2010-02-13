@@ -93,8 +93,8 @@ selectByBounds cmp a k l u
  where
  go l m u
    | u < m      = return ()
-   | otherwise  = do el <- read a l
-                     eu <- read a u
+   | otherwise  = do el <- unsafeRead a l
+                     eu <- unsafeRead a u
                      case cmp eu el of
                        LT -> popTo cmp a l m u
                        _  -> return ()
@@ -143,7 +143,8 @@ heapify cmp a l u = loop $ (len - 1) `div` 3
  len = u - l
  loop k
    | k < 0     = return ()
-   | otherwise = read a (l+k) >>= \e -> siftByOffset cmp a e l k len >> loop (k - 1)
+   | otherwise = unsafeRead a (l+k) >>= \e ->
+                   siftByOffset cmp a e l k len >> loop (k - 1)
 {-# INLINE heapify #-}
 
 -- | Given a heap stored in a portion of an array [l,u), swaps the
@@ -157,9 +158,9 @@ pop cmp a l u = popTo cmp a l u u
 -- of the heap with the element at position t, and rebuilds the heap.
 popTo :: (PrimMonad m, MVector v e)
       => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
-popTo cmp a l u t = do al <- read a l
-                       at <- read a t
-                       write a t al
+popTo cmp a l u t = do al <- unsafeRead a l
+                       at <- unsafeRead a t
+                       unsafeWrite a t al
                        siftByOffset cmp a at l 0 (u - l)
 {-# INLINE popTo #-}
 
@@ -185,9 +186,9 @@ siftByOffset cmp a val off start len = sift val start len
  sift val root len
    | child < len = do (child', ac) <- maximumChild cmp a off child len
                       case cmp val ac of
-                        LT -> write a (root + off) ac >> sift val child' len
-                        _  -> write a (root + off) val
-   | otherwise = write a (root + off) val
+                        LT -> unsafeWrite a (root + off) ac >> sift val child' len
+                        _  -> unsafeWrite a (root + off) val
+   | otherwise = unsafeWrite a (root + off) val
   where child = root * 3 + 1
 {-# INLINE siftByOffset #-}
 
@@ -195,9 +196,9 @@ siftByOffset cmp a val off start len = sift val start len
 maximumChild :: (PrimMonad m, MVector v e)
              => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m (Int,  e)
 maximumChild cmp a off child1 len
-  | child3 < len = do ac1 <- read a (child1 + off)
-                      ac2 <- read a (child2 + off)
-                      ac3 <- read a (child3 + off)
+  | child3 < len = do ac1 <- unsafeRead a (child1 + off)
+                      ac2 <- unsafeRead a (child2 + off)
+                      ac3 <- unsafeRead a (child3 + off)
                       return $ case cmp ac1 ac2 of
                                  LT -> case cmp ac2 ac3 of
                                          LT -> (child3, ac3)
@@ -205,12 +206,12 @@ maximumChild cmp a off child1 len
                                  _  -> case cmp ac1 ac3 of
                                          LT -> (child3, ac3)
                                          _  -> (child1, ac1)
-  | child2 < len = do ac1 <- read a (child1 + off)
-                      ac2 <- read a (child2 + off)
+  | child2 < len = do ac1 <- unsafeRead a (child1 + off)
+                      ac2 <- unsafeRead a (child2 + off)
                       return $ case cmp ac1 ac2 of
                                  LT -> (child2, ac2)
                                  _  -> (child1, ac1)
-  | otherwise    = do ac1 <- read a (child1 + off) ; return (child1, ac1)
+  | otherwise    = do ac1 <- unsafeRead a (child1 + off) ; return (child1, ac1)
  where
  child2 = child1 + 1
  child3 = child1 + 2
