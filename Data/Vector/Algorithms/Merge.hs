@@ -14,7 +14,7 @@
 module Data.Vector.Algorithms.Merge
        ( sort
        , sortBy
-       , sortByBounds
+--       , sortByBounds
        , Comparison
        ) where
 
@@ -25,7 +25,7 @@ import Control.Monad.Primitive
 import Data.Bits
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison, copyOffset)
+import Data.Vector.Algorithms.Common (Comparison)
 
 import qualified Data.Vector.Algorithms.Optimal   as O
 import qualified Data.Vector.Algorithms.Insertion as I
@@ -37,9 +37,18 @@ sort = sortBy compare
 
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
-sortBy cmp arr = sortByBounds cmp arr 0 (length arr)
+sortBy cmp vec
+  | len < 1   = return ()
+  | len == 2  = O.sort2ByOffset cmp vec 0
+  | len == 3  = O.sort3ByOffset cmp vec 0
+  | len == 4  = O.sort4ByOffset cmp vec 0
+  | otherwise = do buf <- new len
+                   mergeSortWithBuf cmp vec buf
+ where
+ len = length vec
 {-# INLINE sortBy #-}
 
+{-
 -- | Sorts a portion of an array [l,u) using a custom comparison.
 sortByBounds :: (PrimMonad m, MVector v e)
              => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
@@ -54,6 +63,7 @@ sortByBounds cmp vec l u
  len  = u - l
 -- size = (u + l) `div` 2 - l
 {-# INLINE sortByBounds #-}
+-}
 
 {-
 mergeSortWithBuf :: (PrimMonad m, MVector v e)
