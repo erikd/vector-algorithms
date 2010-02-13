@@ -60,7 +60,7 @@ sortByBounds' :: (PrimMonad m, MVector v e)
 sortByBounds' cmp a l m u = sort m
  where
  sort i
-   | i < u     = do v <- read a i
+   | i < u     = do v <- unsafeRead a i
                     insert cmp a l v i
                     sort (i+1)
    | otherwise = return ()
@@ -73,9 +73,9 @@ insert :: (PrimMonad m, MVector v e)
 insert cmp a l = loop
  where
  loop val j
-   | j <= l    = write a l val
-   | otherwise = do e <- read a (j - 1)
+   | j <= l    = unsafeWrite a l val
+   | otherwise = do e <- unsafeRead a (j - 1)
                     case cmp val e of
-                      LT -> write a j e >> loop val (j - 1)
-                      _  -> write a j val
+                      LT -> unsafeWrite a j e >> loop val (j - 1)
+                      _  -> unsafeWrite a j val
 {-# INLINE insert #-}
