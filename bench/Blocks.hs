@@ -5,7 +5,7 @@ module Blocks where
 import Control.Monad
 import Control.Monad.ST
 
-import Data.Array.Vector
+import Data.Vector.Unboxed.Mutable
 
 import System.CPUTime
 
@@ -14,25 +14,25 @@ import System.Random.Mersenne
 -- Some conveniences for doing evil stuff in the ST monad.
 -- All the tests get run in IO, but uvector stuff happens
 -- in ST, so we temporarily coerce.
-clock :: ST s Integer
-clock = unsafeIOToST getCPUTime
+clock :: IO Integer
+clock = getCPUTime
 
 -- Strategies for filling the initial arrays
-rand :: (MTRandom e) => MTGen -> Int -> ST s e
-rand g _ = unsafeIOToST (random g)
+rand :: (MTRandom e) => MTGen -> Int -> IO e
+rand g _ = random g
 
-ascend :: Num e => Int -> ST s e
+ascend :: Num e => Int -> IO e
 ascend = return . fromIntegral
 
-descend :: Num e => e -> Int -> ST s e
+descend :: Num e => e -> Int -> IO e
 descend m n = return $ m - fromIntegral n
 
-modulo :: Integral e => e -> Int -> ST s e
+modulo :: Integral e => e -> Int -> IO e
 modulo m n = return $ fromIntegral n `mod` m
 
 -- This is the worst case for the median-of-three quicksort
 -- used in the introsort implementation.
-medianKiller :: Integral e => e -> Int -> ST s e
+medianKiller :: Integral e => e -> Int -> IO e
 medianKiller m n'
   | n < k     = return $ if even n then n + 1 else n + k
   | otherwise = return $ (n - k + 1) * 2
@@ -41,17 +41,17 @@ medianKiller m n'
  k = m `div` 2
 {-# INLINE medianKiller #-}
 
-initialize :: (UA e) => MUArr e s -> Int -> (Int -> ST s e) -> ST s ()
+initialize :: (Unbox e) => MVector RealWorld e -> Int -> (Int -> IO e) -> IO ()
 initialize arr len fill = init $ len - 1
- where init n = fill n >>= writeMU arr n >> when (n > 0) (init $ n - 1)
+ where init n = fill n >>= unsafeWrite arr n >> when (n > 0) (init $ n - 1)
 {-# INLINE initialize #-}
 
-speedTest :: (UA e) => Int
-                    -> (forall s. Int -> ST s e)
-                    -> (forall s. MUArr e s -> ST s ())
-                    -> IO Integer
-speedTest n fill algo = stToIO $ do
-  arr <- newMU n
+speedTest :: (Unbox e) => Int
+                       -> (Int -> IO e)
+                       -> (MVector RealWorld e -> IO ())
+                       -> IO Integer
+speedTest n fill algo = do
+  arr <- new n
   initialize arr n fill
   t0 <- clock
   algo arr

@@ -2,19 +2,23 @@
 
 module Main (main) where
 
+import Prelude hiding (read, length)
+import qualified Prelude as P
+
 import Control.Monad.ST
 import Control.Monad.Error
 
 import Data.Char
 import Data.Ord  (comparing)
 import Data.List (maximumBy)
-import Data.Array.Vector
 
-import qualified Data.Array.Vector.Algorithms.Insertion as INS
-import qualified Data.Array.Vector.Algorithms.Intro     as INT
-import qualified Data.Array.Vector.Algorithms.TriHeap   as TH
-import qualified Data.Array.Vector.Algorithms.Merge     as M
-import qualified Data.Array.Vector.Algorithms.Radix     as R
+import Data.Vector.Unboxed.Mutable
+
+import qualified Data.Vector.Algorithms.Insertion as INS
+import qualified Data.Vector.Algorithms.Intro     as INT
+import qualified Data.Vector.Algorithms.TriHeap   as TH
+import qualified Data.Vector.Algorithms.Merge     as M
+import qualified Data.Vector.Algorithms.Radix     as R
 
 import System.Environment
 import System.Console.GetOpt
@@ -23,14 +27,14 @@ import System.Random.Mersenne
 import Blocks
 
 -- Does nothing. For testing the speed/heap allocation of the building blocks.
-noalgo :: (UA e) => MUArr e s -> ST s ()
+noalgo :: (Unbox e) => MVector RealWorld e -> IO ()
 noalgo _ = return ()
 
 -- Allocates a temporary buffer, like mergesort for similar purposes as noalgo.
-alloc :: (UA e) => MUArr e s -> ST s ()
+alloc :: (Unbox e) => MVector RealWorld e -> IO ()
 alloc arr | len <= 4  = arr `seq` return ()
-          | otherwise = (newMU (len `div` 2) :: ST s (MUArr Int s)) >> return ()
- where len = lengthMU arr
+          | otherwise = (new (len `div` 2) :: IO (MVector RealWorld Int)) >> return ()
+ where len = length arr
 
 displayTime :: String -> Integer -> IO ()
 displayTime s elapsed = putStrLn $
@@ -39,7 +43,7 @@ displayTime s elapsed = putStrLn $
 run :: String -> IO Integer -> IO ()
 run s t = t >>= displayTime s
 
-sortSuite :: String -> MTGen -> Int -> (forall s. MUArr Int s -> ST s ()) -> IO ()
+sortSuite :: String -> MTGen -> Int -> (MVector RealWorld Int -> IO ()) -> IO ()
 sortSuite str g n sort = do
   putStrLn $ "Testing: " ++ str
   run "Random            " $ speedTest n (rand g >=> modulo n) sort
@@ -50,7 +54,7 @@ sortSuite str g n sort = do
   run "Median killer     " $ speedTest m (medianKiller m) sort
 
 partialSortSuite :: String -> MTGen -> Int -> Int
-                 -> (forall s. MUArr Int s -> Int -> ST s ()) -> IO ()
+                 -> (MVector RealWorld Int -> Int -> IO ()) -> IO ()
 partialSortSuite str g n k sort = sortSuite str g n (\a -> sort a k)
 
 -- -----------------
@@ -94,7 +98,7 @@ options = [ Option ['A']     ["algorithm"] (ReqArg parseAlgo "ALGO")
  fmt (x:y:zs) = '\t' : pad (show x) ++ show y ++ "\n" ++ fmt zs
  fmt [x]      = '\t' : show x ++ "\n"
  fmt []       = ""
- size         = ("    " ++) . maximumBy (comparing length) . map show $ allAlgos
+ size         = ("    " ++) . maximumBy (comparing P.length) . map show $ allAlgos
  pad str      = zipWith const (str ++ repeat ' ') size
 
 parseAlgo :: String -> Options -> Either String Options
