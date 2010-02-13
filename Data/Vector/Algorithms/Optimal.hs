@@ -52,10 +52,10 @@ sort2ByOffset cmp a off = sort2ByIndex cmp a off (off + 1)
 sort2ByIndex :: (PrimMonad m, MVector v e)
              => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
 sort2ByIndex cmp a i j = do
-  a0 <- read a i
-  a1 <- read a j
+  a0 <- unsafeRead a i
+  a1 <- unsafeRead a j
   case cmp a0 a1 of
-    GT -> write a i a1 >> write a j a0
+    GT -> unsafeWrite a i a1 >> unsafeWrite a j a0
     _  -> return ()
 {-# INLINE sort2ByIndex #-}
 
@@ -72,26 +72,26 @@ sort3ByOffset cmp a off = sort3ByIndex cmp a off (off + 1) (off + 2)
 sort3ByIndex :: (PrimMonad m, MVector v e)
              => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 sort3ByIndex cmp a i j k = do
-  a0 <- read a i
-  a1 <- read a j
-  a2 <- read a k
+  a0 <- unsafeRead a i
+  a1 <- unsafeRead a j
+  a2 <- unsafeRead a k
   case cmp a0 a1 of
     GT -> case cmp a0 a2 of
             GT -> case cmp a2 a1 of
-                    LT -> do write a i a2
-                             write a k a0
-                    _  -> do write a i a1
-                             write a j a2
-                             write a k a0
-            _  -> do write a i a1
-                     write a j a0
+                    LT -> do unsafeWrite a i a2
+                             unsafeWrite a k a0
+                    _  -> do unsafeWrite a i a1
+                             unsafeWrite a j a2
+                             unsafeWrite a k a0
+            _  -> do unsafeWrite a i a1
+                     unsafeWrite a j a0
     _  -> case cmp a1 a2 of
             GT -> case cmp a0 a2 of
-                    GT -> do write a i a2
-                             write a j a0
-                             write a k a1
-                    _  -> do write a j a2
-                             write a k a1
+                    GT -> do unsafeWrite a i a2
+                             unsafeWrite a j a0
+                             unsafeWrite a k a1
+                    _  -> do unsafeWrite a j a2
+                             unsafeWrite a k a1
             _  -> return ()
 {-# INLINE sort3ByIndex #-}
 
@@ -109,128 +109,128 @@ sort4ByOffset cmp a off = sort4ByIndex cmp a off (off + 1) (off + 2) (off + 3)
 sort4ByIndex :: (PrimMonad m, MVector v e)
              => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> Int -> m ()
 sort4ByIndex cmp a i j k l = do
-  a0 <- read a i
-  a1 <- read a j
-  a2 <- read a k
-  a3 <- read a l
+  a0 <- unsafeRead a i
+  a1 <- unsafeRead a j
+  a2 <- unsafeRead a k
+  a3 <- unsafeRead a l
   case cmp a0 a1 of
     GT -> case cmp a0 a2 of
             GT -> case cmp a1 a2 of
                     GT -> case cmp a1 a3 of
                             GT -> case cmp a2 a3 of
-                                    GT -> do write a i a3
-                                             write a j a2
-                                             write a k a1
-                                             write a l a0
-                                    _  -> do write a i a2
-                                             write a j a3
-                                             write a k a1
-                                             write a l a0
+                                    GT -> do unsafeWrite a i a3
+                                             unsafeWrite a j a2
+                                             unsafeWrite a k a1
+                                             unsafeWrite a l a0
+                                    _  -> do unsafeWrite a i a2
+                                             unsafeWrite a j a3
+                                             unsafeWrite a k a1
+                                             unsafeWrite a l a0
                             _  -> case cmp a0 a3 of
-                                    GT -> do write a i a2
-                                             write a j a1
-                                             write a k a3
-                                             write a l a0
-                                    _  -> do write a i a2
-                                             write a j a1
-                                             write a k a0
-                                             write a l a3
+                                    GT -> do unsafeWrite a i a2
+                                             unsafeWrite a j a1
+                                             unsafeWrite a k a3
+                                             unsafeWrite a l a0
+                                    _  -> do unsafeWrite a i a2
+                                             unsafeWrite a j a1
+                                             unsafeWrite a k a0
+                                             unsafeWrite a l a3
                     _ -> case cmp a2 a3 of
                            GT -> case cmp a1 a3 of
-                                   GT -> do write a i a3
-                                            write a j a1
-                                            write a k a2
-                                            write a l a0
-                                   _  -> do write a i a1
-                                            write a j a3
-                                            write a k a2
-                                            write a l a0
+                                   GT -> do unsafeWrite a i a3
+                                            unsafeWrite a j a1
+                                            unsafeWrite a k a2
+                                            unsafeWrite a l a0
+                                   _  -> do unsafeWrite a i a1
+                                            unsafeWrite a j a3
+                                            unsafeWrite a k a2
+                                            unsafeWrite a l a0
                            _  -> case cmp a0 a3 of
-                                   GT -> do write a i a1
-                                            write a j a2
-                                            write a k a3
-                                            write a l a0
-                                   _  -> do write a i a1
-                                            write a j a2
-                                            write a k a0
-                                            -- write a l a3
+                                   GT -> do unsafeWrite a i a1
+                                            unsafeWrite a j a2
+                                            unsafeWrite a k a3
+                                            unsafeWrite a l a0
+                                   _  -> do unsafeWrite a i a1
+                                            unsafeWrite a j a2
+                                            unsafeWrite a k a0
+                                            -- unsafeWrite a l a3
             _  -> case cmp a0 a3 of
                     GT -> case cmp a1 a3 of
-                            GT -> do write a i a3
-                                     -- write a j a1
-                                     write a k a0
-                                     write a l a2
-                            _  -> do write a i a1
-                                     write a j a3
-                                     write a k a0
-                                     write a l a2
+                            GT -> do unsafeWrite a i a3
+                                     -- unsafeWrite a j a1
+                                     unsafeWrite a k a0
+                                     unsafeWrite a l a2
+                            _  -> do unsafeWrite a i a1
+                                     unsafeWrite a j a3
+                                     unsafeWrite a k a0
+                                     unsafeWrite a l a2
                     _  -> case cmp a2 a3 of
-                            GT -> do write a i a1
-                                     write a j a0
-                                     write a k a3
-                                     write a l a2
-                            _  -> do write a i a1
-                                     write a j a0
-                                     -- write a k a2
-                                     -- write a l a3
+                            GT -> do unsafeWrite a i a1
+                                     unsafeWrite a j a0
+                                     unsafeWrite a k a3
+                                     unsafeWrite a l a2
+                            _  -> do unsafeWrite a i a1
+                                     unsafeWrite a j a0
+                                     -- unsafeWrite a k a2
+                                     -- unsafeWrite a l a3
     _  -> case cmp a1 a2 of
             GT -> case cmp a0 a2 of
                     GT -> case cmp a0 a3 of
                             GT -> case cmp a2 a3 of
-                                    GT -> do write a i a3
-                                             write a j a2
-                                             write a k a0
-                                             write a l a1
-                                    _  -> do write a i a2
-                                             write a j a3
-                                             write a k a0
-                                             write a l a1
+                                    GT -> do unsafeWrite a i a3
+                                             unsafeWrite a j a2
+                                             unsafeWrite a k a0
+                                             unsafeWrite a l a1
+                                    _  -> do unsafeWrite a i a2
+                                             unsafeWrite a j a3
+                                             unsafeWrite a k a0
+                                             unsafeWrite a l a1
                             _  -> case cmp a1 a3 of
-                                    GT -> do write a i a2
-                                             write a j a0
-                                             write a k a3
-                                             write a l a1
-                                    _  -> do write a i a2
-                                             write a j a0
-                                             write a k a1
-                                             -- write a l a3
+                                    GT -> do unsafeWrite a i a2
+                                             unsafeWrite a j a0
+                                             unsafeWrite a k a3
+                                             unsafeWrite a l a1
+                                    _  -> do unsafeWrite a i a2
+                                             unsafeWrite a j a0
+                                             unsafeWrite a k a1
+                                             -- unsafeWrite a l a3
                     _  -> case cmp a2 a3 of
                             GT -> case cmp a0 a3 of
-                                    GT -> do write a i a3
-                                             write a j a0
-                                             -- write a k a2
-                                             write a l a1
-                                    _  -> do -- write a i a0
-                                             write a j a3
-                                             -- write a k a2
-                                             write a l a1
+                                    GT -> do unsafeWrite a i a3
+                                             unsafeWrite a j a0
+                                             -- unsafeWrite a k a2
+                                             unsafeWrite a l a1
+                                    _  -> do -- unsafeWrite a i a0
+                                             unsafeWrite a j a3
+                                             -- unsafeWrite a k a2
+                                             unsafeWrite a l a1
                             _  -> case cmp a1 a3 of
-                                    GT -> do -- write a i a0
-                                             write a j a2
-                                             write a k a3
-                                             write a l a1
-                                    _  -> do -- write a i a0
-                                             write a j a2
-                                             write a k a1
-                                             -- write a l a3
+                                    GT -> do -- unsafeWrite a i a0
+                                             unsafeWrite a j a2
+                                             unsafeWrite a k a3
+                                             unsafeWrite a l a1
+                                    _  -> do -- unsafeWrite a i a0
+                                             unsafeWrite a j a2
+                                             unsafeWrite a k a1
+                                             -- unsafeWrite a l a3
             _  -> case cmp a1 a3 of
                     GT -> case cmp a0 a3 of
-                            GT -> do write a i a3
-                                     write a j a0
-                                     write a k a1
-                                     write a l a2
-                            _  -> do -- write a i a0
-                                     write a j a3
-                                     write a k a1
-                                     write a l a2
+                            GT -> do unsafeWrite a i a3
+                                     unsafeWrite a j a0
+                                     unsafeWrite a k a1
+                                     unsafeWrite a l a2
+                            _  -> do -- unsafeWrite a i a0
+                                     unsafeWrite a j a3
+                                     unsafeWrite a k a1
+                                     unsafeWrite a l a2
                     _  -> case cmp a2 a3 of
-                            GT -> do -- write a i a0
-                                     -- write a j a1
-                                     write a k a3
-                                     write a l a2
-                            _  -> do -- write a i a0
-                                     -- write a j a1
-                                     -- write a k a2
-                                     -- write a l a3
+                            GT -> do -- unsafeWrite a i a0
+                                     -- unsafeWrite a j a1
+                                     unsafeWrite a k a3
+                                     unsafeWrite a l a2
+                            _  -> do -- unsafeWrite a i a0
+                                     -- unsafeWrite a j a1
+                                     -- unsafeWrite a k a2
+                                     -- unsafeWrite a l a3
                                      return ()
 {-# INLINE sort4ByIndex #-}
