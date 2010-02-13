@@ -25,9 +25,9 @@ type Comparison e = e -> e -> Ordering
 
 -- | Swaps the elements at two positions in an array.
 swap :: (PrimMonad m, MVector v e) => v (PrimState m) e -> Int -> Int -> m ()
-swap arr i j = do ei <- read arr i
-                  read arr j >>= write arr i
-                  write arr j ei
+swap arr i j = do ei <- unsafeRead arr i
+                  unsafeRead arr j >>= unsafeWrite arr i
+                  unsafeWrite arr j ei
 {-# INLINE swap #-}
 
 
