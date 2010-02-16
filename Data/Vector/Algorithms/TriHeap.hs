@@ -43,7 +43,7 @@ import Control.Monad.Primitive
 
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (swap, Comparison)
+import Data.Vector.Algorithms.Common (Comparison)
 
 import qualified Data.Vector.Algorithms.Optimal as O
 
@@ -169,7 +169,7 @@ popTo cmp a l u t = do al <- unsafeRead a l
 -- particular order.
 sortHeap :: (PrimMonad m, MVector v e)
          => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
-sortHeap cmp a l m u = loop (u-1) >> swap a l m
+sortHeap cmp a l m u = loop (u-1) >> unsafeSwap a l m
  where
  loop k
    | m < k     = pop cmp a l k >> loop (k-1)

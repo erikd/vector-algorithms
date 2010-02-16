@@ -53,7 +53,7 @@ import Control.Monad.Primitive
 import Data.Bits
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (swap, Comparison)
+import Data.Vector.Algorithms.Common (Comparison)
 
 import qualified Data.Vector.Algorithms.Insertion as I
 import qualified Data.Vector.Algorithms.Optimal   as O
@@ -93,7 +93,7 @@ introsort cmp a i l u = sort i l u >> I.sortByBounds cmp a l u
    | otherwise = do O.sort3ByIndex cmp a c l (u-1) -- sort the median into the lowest position
                     p <- unsafeRead a l
                     mid <- partitionBy cmp a p (l+1) u
-                    swap a l (mid - 1)
+                    unsafeSwap a l (mid - 1)
                     sort (d-1) mid u
                     sort (d-1) l   (mid - 1)
   where
@@ -125,7 +125,7 @@ selectByBounds cmp a k l u = go (ilg len) l (l + k) u
  go n l m u = do O.sort3ByIndex cmp a c l (u-1)
                  p <- unsafeRead a l
                  mid <- partitionBy cmp a p (l+1) u
-                 swap a l (mid - 1)
+                 unsafeSwap a l (mid - 1)
                  if m > mid
                    then go (n-1) mid m u
                    else if m < mid - 1
@@ -159,7 +159,7 @@ partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
    | otherwise = do O.sort3ByIndex cmp a c l (u-1)
                     p <- unsafeRead a l
                     mid <- partitionBy cmp a p (l+1) u
-                    swap a l (mid - 1)
+                    unsafeSwap a l (mid - 1)
                     case compare m mid of
                       GT -> do introsort cmp a (n-1) l (mid - 1)
                                go (n-1) mid m u
@@ -182,7 +182,7 @@ partitionBy cmp a = partUp
    | l < u = do e <- unsafeRead a u
                 case cmp p e of
                   LT -> partDown p l (u-1)
-                  _  -> swap a l u >> partUp p (l+1) u
+                  _  -> unsafeSwap a l u >> partUp p (l+1) u
    | otherwise = return l
 {-# INLINE partitionBy #-}
 
