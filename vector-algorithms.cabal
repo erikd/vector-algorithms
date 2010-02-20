@@ -51,7 +51,7 @@ Library
         CPP
 
     GHC-Options:
-        -O2
+        -Odph
         -funbox-strict-fields
 
     Include-Dirs:
