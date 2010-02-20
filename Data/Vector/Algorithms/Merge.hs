@@ -38,7 +38,7 @@ sort = sortBy compare
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
 sortBy cmp vec
-  | len < 1   = return ()
+  | len <= 1  = return ()
   | len == 2  = O.sort2ByOffset cmp vec 0
   | len == 3  = O.sort3ByOffset cmp vec 0
   | len == 4  = O.sort4ByOffset cmp vec 0
