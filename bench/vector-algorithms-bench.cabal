@@ -15,7 +15,7 @@ cabal-version:          >= 1.2
 executable vec-bench
   build-depends:        base, mersenne-random, vector, vector-algorithms, mtl
 
-  ghc-options:          -Wall -O2
+  ghc-options:          -Wall -Odph
   main-is:              Main.hs
 
   extensions:
