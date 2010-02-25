@@ -127,16 +127,52 @@ runTest :: MTGen -> Int -> Int -> Algorithm -> IO ()
 runTest g n k alg = case alg of
   DoNothing          -> sortSuite        "no algorithm"          g n   noalgo
   Allocate           -> sortSuite        "allocate"              g n   alloc
-  InsertionSort      -> sortSuite        "insertion sort"        g n   INS.sort
-  IntroSort          -> sortSuite        "introsort"             g n   INT.sort
-  IntroPartialSort   -> partialSortSuite "partial introsort"     g n k INT.partialSort
-  IntroSelect        -> partialSortSuite "introselect"           g n k INT.select
-  TriHeapSort        -> sortSuite        "tri-heap sort"         g n   TH.sort
-  TriHeapPartialSort -> partialSortSuite "partial tri-heap sort" g n k TH.partialSort
-  TriHeapSelect      -> partialSortSuite "tri-heap select"       g n k TH.select
-  MergeSort          -> sortSuite        "merge sort"            g n   M.sort
-  RadixSort          -> sortSuite        "radix sort"            g n   R.sort
+  InsertionSort      -> sortSuite        "insertion sort"        g n   insertionSort
+  IntroSort          -> sortSuite        "introsort"             g n   introSort
+  IntroPartialSort   -> partialSortSuite "partial introsort"     g n k introPSort
+  IntroSelect        -> partialSortSuite "introselect"           g n k introSelect
+  TriHeapSort        -> sortSuite        "tri-heap sort"         g n   triHeapSort
+  TriHeapPartialSort -> partialSortSuite "partial tri-heap sort" g n k triHeapPSort
+  TriHeapSelect      -> partialSortSuite "tri-heap select"       g n k triHeapSelect
+  MergeSort          -> sortSuite        "merge sort"            g n   mergeSort
+  RadixSort          -> sortSuite        "radix sort"            g n   radixSort
   _                  -> putStrLn $ "Currently unsupported algorithm: " ++ show alg
+
+mergeSort :: MVector RealWorld Int -> IO ()
+mergeSort v = M.sort v
+{-# NOINLINE mergeSort #-}
+
+introSort :: MVector RealWorld Int -> IO ()
+introSort v = INT.sort v
+{-# NOINLINE introSort #-}
+
+introPSort :: MVector RealWorld Int -> Int -> IO ()
+introPSort v k = INT.partialSort v k
+{-# NOINLINE introPSort #-}
+
+introSelect :: MVector RealWorld Int -> Int -> IO ()
+introSelect v k = INT.select v k
+{-# NOINLINE introSelect #-}
+
+triHeapSort :: MVector RealWorld Int -> IO ()
+triHeapSort v = TH.sort v
+{-# NOINLINE triHeapSort #-}
+
+triHeapPSort :: MVector RealWorld Int -> Int -> IO ()
+triHeapPSort v k = TH.partialSort v k
+{-# NOINLINE triHeapPSort #-}
+
+triHeapSelect :: MVector RealWorld Int -> Int -> IO ()
+triHeapSelect v k = TH.select v k
+{-# NOINLINE triHeapSelect #-}
+
+insertionSort :: MVector RealWorld Int -> IO ()
+insertionSort v = INS.sort v
+{-# NOINLINE insertionSort #-}
+
+radixSort :: MVector RealWorld Int -> IO ()
+radixSort v = R.sort v
+{-# NOINLINE radixSort #-}
 
 main :: IO ()
 main = do args <- getArgs
