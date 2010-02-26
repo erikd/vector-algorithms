@@ -18,8 +18,6 @@ import Control.Monad.Primitive
 
 import Data.Vector.Generic.Mutable
 
-#include "vector.h"
-
 -- | A type of comparisons between two values of a given type.
 type Comparison e = e -> e -> Ordering
 
