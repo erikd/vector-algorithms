@@ -34,13 +34,5 @@ swap arr i j = do ei <- unsafeRead arr i
 copyOffset :: (PrimMonad m, MVector v e)
            => v (PrimState m) e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 copyOffset from to iFrom iTo len =
-    BOUNDS_CHECK(checkIndex) "copyOffset" iFrom             (length from)
-  $ BOUNDS_CHECK(checkIndex) "copyOffset" (iFrom + len - 1) (length from)  
-  $ BOUNDS_CHECK(checkIndex) "copyOffset" iTo               (length to)  
-  $ BOUNDS_CHECK(checkIndex) "copyOffset" (iTo + len - 1)   (length to)
-  $ go 0
- where
- go n | n < len   = unsafeRead from (iFrom + n) >>= unsafeWrite to (iTo + n) >> go (n+1)
-      | otherwise = return ()
+  unsafeCopy (unsafeSlice iTo len to) (unsafeSlice iFrom len from)
 {-# INLINE copyOffset #-}
-
