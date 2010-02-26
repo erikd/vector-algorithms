@@ -8,8 +8,6 @@ Homepage:          http://code.haskell.org/~dolio/
 Category:          Data
 Synopsis:          Efficient algorithms for vector arrays
 Description:       Efficient algorithms for vector arrays
-                   be sure to compile with -O2, and -fvia-C -optc-O3 is
-                   recommended.
 Build-Type:        Simple
 Cabal-Version:     >= 1.2.3
 
