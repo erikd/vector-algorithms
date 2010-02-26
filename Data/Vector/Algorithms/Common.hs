@@ -23,14 +23,6 @@ import Data.Vector.Generic.Mutable
 -- | A type of comparisons between two values of a given type.
 type Comparison e = e -> e -> Ordering
 
--- | Swaps the elements at two positions in an array.
-swap :: (PrimMonad m, MVector v e) => v (PrimState m) e -> Int -> Int -> m ()
-swap arr i j = do ei <- unsafeRead arr i
-                  unsafeRead arr j >>= unsafeWrite arr i
-                  unsafeWrite arr j ei
-{-# INLINE swap #-}
-
-
 copyOffset :: (PrimMonad m, MVector v e)
            => v (PrimState m) e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 copyOffset from to iFrom iTo len =
