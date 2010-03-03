@@ -14,7 +14,6 @@
 module Data.Vector.Algorithms.Merge
        ( sort
        , sortBy
-       , sortByBounds
        , Comparison
        ) where
 
@@ -37,8 +36,6 @@ sort = sortBy compare
 
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
-sortBy cmp vec = sortByBounds cmp vec 0 (length vec)
-{-
 sortBy cmp vec
   | len <= 1  = return ()
   | len == 2  = O.sort2ByOffset cmp vec 0
@@ -48,82 +45,21 @@ sortBy cmp vec
                    mergeSortWithBuf cmp vec buf
  where
  len = length vec
--}
 {-# INLINE sortBy #-}
 
-
--- | Sorts a portion of an array [l,u) using a custom comparison.
-sortByBounds :: (PrimMonad m, MVector v e)
-             => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
-sortByBounds cmp vec l u
-  | len <= 1  = return ()
-  | len == 2  = O.sort2ByOffset cmp vec l
-  | len == 3  = O.sort3ByOffset cmp vec l
-  | len == 4  = O.sort4ByOffset cmp vec l
-  | otherwise = do tmp <- new size
-                   mergeSortWithBuf cmp vec tmp l u
- where
- len  = u - l
- size = (u + l) `div` 2 - l
-{-# INLINE sortByBounds #-}
-
-mergeSortWithBuf :: (PrimMonad m, MVector v e)
-                 => Comparison e -> v (PrimState m) e -> v (PrimState m) e
-                 -> Int -> Int -> m ()
-mergeSortWithBuf cmp arr tmp = loop
- where
- loop l u
-   | len < threshold = I.sortByBounds cmp arr l u
-   | otherwise       = do loop l mid
-                          loop mid u
-                          merge cmp arr tmp l mid u
-  where
-  len = u - l
-  mid = (u + l) `shiftR` 1
-{-# INLINE mergeSortWithBuf #-}
-
-{-
 mergeSortWithBuf :: (PrimMonad m, MVector v e)
                  => Comparison e -> v (PrimState m) e -> v (PrimState m) e -> m ()
-mergeSortWithBuf cmp src buf
-  | length src < threshold = I.sortByBounds cmp src 0 (length src)
-  | otherwise              = do mergeSortWithBuf cmp srcL bufL
-                                mergeSortWithBuf cmp srcU bufU
-                                merge cmp src buf mid
+mergeSortWithBuf cmp src buf = loop 0 (length src)
  where
- len = length src
- mid = len `shiftR` 1
+ loop l u
+   | len < threshold = I.sortByBounds cmp src l u
+   | otherwise       = do loop l mid
+                          loop mid u
+                          merge cmp (unsafeSlice l len src) buf (mid - l)
+  where len = u - l
+        mid = (u + l) `shiftR` 1
+{-# INLINE mergeSortWithBuf #-}
 
- srcL = unsafeSlice 0   mid         src
- srcU = unsafeSlice mid (len - mid) src
- 
- bufL = unsafeSlice 0   mid         buf
- bufU = unsafeSlice mid (len - mid) buf
--}
-
-merge :: (PrimMonad m, MVector v e)
-      => Comparison e -> v (PrimState m) e -> v (PrimState m) e
-      -> Int -> Int -> Int -> m ()
-merge cmp arr tmp l m u = do copyOffset arr tmp l 0 uTmp
-                             eTmp <- unsafeRead tmp 0
-                             eArr <- unsafeRead arr m
-                             loop 0 eTmp m eArr l
- where
- uTmp = m - l
- uArr = u
- loop iTmp eTmp iArr eArr iIns
-   | iTmp >= uTmp = return ()
-   | iArr >= uArr = copyOffset tmp arr iTmp iIns (uTmp - iTmp)
-   | otherwise    = case cmp eArr eTmp of
-                      LT -> do unsafeWrite arr iIns eArr
-                               eArr <- unsafeRead arr (iArr+1)
-                               loop iTmp eTmp (iArr+1) eArr (iIns+1)
-                      _  -> do unsafeWrite arr iIns eTmp
-                               eTmp <- unsafeRead tmp (iTmp+1)
-                               loop (iTmp+1) eTmp iArr eArr (iIns+1)
-{-# INLINE merge #-}
-
-{-
 merge :: (PrimMonad m, MVector v e)
       => Comparison e -> v (PrimState m) e -> v (PrimState m) e
       -> Int -> m ()
@@ -148,7 +84,6 @@ merge cmp src buf mid = do unsafeCopy tmp lower
                                       eLow <- unsafeRead low (iLow + 1)
                                       loop low (iLow + 1) eLow high iHigh eHigh (iIns + 1)
 {-# INLINE merge #-}
--}
 
 threshold :: Int
 threshold = 25
