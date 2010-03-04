@@ -57,9 +57,9 @@ binarySearchByBounds cmp vec e = loop
    | u <= l    = return l
    | otherwise = do e' <- unsafeRead vec k
                     case cmp e' e of
-                      LT -> binarySearchByBounds cmp vec e (k+1) u
+                      LT -> loop (k+1) u
                       EQ -> return k
-                      GT -> binarySearchByBounds cmp vec e l     k
+                      GT -> loop l     k
   where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchByBounds #-}
 
@@ -88,8 +88,8 @@ binarySearchLByBounds cmp vec e = loop
    | u <= l    = return l
    | otherwise = do e' <- unsafeRead vec k
                     case cmp e' e of
-                      LT -> binarySearchLByBounds cmp vec e (k+1) u
-                      _  -> binarySearchLByBounds cmp vec e l     k
+                      LT -> loop (k+1) u
+                      _  -> loop l     k
   where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchLByBounds #-}
 
