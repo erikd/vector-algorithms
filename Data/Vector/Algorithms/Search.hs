@@ -36,6 +36,7 @@ import Data.Vector.Algorithms.Common (Comparison)
 binarySearch :: (PrimMonad m, MVector v e, Ord e)
              => v (PrimState m) e -> e -> m Int
 binarySearch = binarySearchBy compare
+{-# INLINE binarySearch #-}
 
 -- | Finds an index in a given vector, which must be sorted with respect to the
 -- given comparison function, at which the given element could be inserted while
@@ -43,20 +44,23 @@ binarySearch = binarySearchBy compare
 binarySearchBy :: (PrimMonad m, MVector v e)
                => Comparison e -> v (PrimState m) e -> e -> m Int
 binarySearchBy cmp vec e = binarySearchByBounds cmp vec e 0 (length vec)
+{-# INLINE binarySearchBy #-}
 
 -- | Given a vector sorted with respect to a given comparison function in indices
 -- in [l,u), finds an index in [l,u] at which the given element could be inserted
 -- while preserving sortedness.
 binarySearchByBounds :: (PrimMonad m, MVector v e)
                      => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
-binarySearchByBounds cmp vec e l u
-  | u <= l    = return l
-  | otherwise = do e' <- unsafeRead vec k
-                   case cmp e' e of
-                     LT -> binarySearchByBounds cmp vec e (k+1) u
-                     EQ -> return k
-                     GT -> binarySearchByBounds cmp vec e l     k
- where k = (u + l) `shiftR` 1
+binarySearchByBounds cmp vec e = loop
+ where
+ loop !l !u 
+   | u <= l    = return l
+   | otherwise = do e' <- unsafeRead vec k
+                    case cmp e' e of
+                      LT -> binarySearchByBounds cmp vec e (k+1) u
+                      EQ -> return k
+                      GT -> binarySearchByBounds cmp vec e l     k
+  where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchByBounds #-}
 
 -- | Finds the lowest index in a given sorted vector at which the given element
@@ -78,13 +82,15 @@ binarySearchLBy cmp vec e = binarySearchLByBounds cmp vec e 0 (length vec)
 -- inserted while preserving sortedness.
 binarySearchLByBounds :: (PrimMonad m, MVector v e)
                       => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
-binarySearchLByBounds cmp vec e !l !u
-  | u <= l    = return l
-  | otherwise = do e' <- unsafeRead vec k
-                   case cmp e' e of
-                     LT -> binarySearchLByBounds cmp vec e (k+1) u
-                     _  -> binarySearchLByBounds cmp vec e l     k
- where k = (u + l) `shiftR` 1
+binarySearchLByBounds cmp vec e = loop
+ where
+ loop !l !u
+   | u <= l    = return l
+   | otherwise = do e' <- unsafeRead vec k
+                    case cmp e' e of
+                      LT -> binarySearchLByBounds cmp vec e (k+1) u
+                      _  -> binarySearchLByBounds cmp vec e l     k
+  where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchLByBounds #-}
 
 -- | Finds the greatest index in a given sorted vector at which the given element
@@ -106,11 +112,13 @@ binarySearchRBy cmp vec e = binarySearchRByBounds cmp vec e 0 (length vec)
 -- inserted while preserving sortedness.
 binarySearchRByBounds :: (PrimMonad m, MVector v e)
                       => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
-binarySearchRByBounds cmp vec e !l !u
-  | u <= l    = return l
-  | otherwise = do e' <- unsafeRead vec k
-                   case cmp e' e of
-                     GT -> binarySearchRByBounds cmp vec e l     k
-                     _  -> binarySearchRByBounds cmp vec e (k+1) u
- where k = (u + l) `shiftR` 1
+binarySearchRByBounds cmp vec e = loop
+ where
+ loop !l !u
+   | u <= l    = return l
+   | otherwise = do e' <- unsafeRead vec k
+                    case cmp e' e of
+                      GT -> loop l     k
+                      _  -> loop (k+1) u
+  where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchRByBounds #-}
