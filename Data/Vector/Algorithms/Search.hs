@@ -86,3 +86,28 @@ binarySearchLByBounds cmp arr e !l !u
                      _  -> binarySearchLByBounds cmp arr e l     k
  where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchLByBounds #-}
+
+-- | Finds the greatest index in a given sorted array at which the given element
+-- could be inserted while maintaining sortedness.
+binarySearchR :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> e -> m Int
+binarySearchR = binarySearchRBy compare
+{-# INLINE binarySearchR #-}
+
+-- | Finds the greatest index in a given array, which must be sorted with respect to
+-- the given comparison function, at which the given element could be inserted
+-- while preserving the sortedness.
+binarySearchRBy :: (PrimMonad m, MVector v e)
+                => Comparison e -> v (PrimState m) e -> e -> m Int
+binarySearchRBy cmp vec e = binarySearchRByBounds cmp vec e 0 (length vec)
+{-# INLINE binarySearchRBy #-}
+
+binarySearchRByBounds :: (PrimMonad m, MVector v e)
+                      => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
+binarySearchRByBounds cmp vec e !l !u
+  | u <= l    = return l
+  | otherwise = do e' <- unsafeRead vec k
+                   case cmp e' e of
+                     GT -> binarySearchRByBounds cmp vec e l     k
+                     _  -> binarySearchRByBounds cmp vec e (k+1) u
+ where k = (u + l) `shiftR` 1
+{-# INLINE binarySearchRByBounds #-}
