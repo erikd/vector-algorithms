@@ -1,4 +1,4 @@
-{-# LANGUAGE TypeOperators, BangPatterns #-}
+{-# LANGUAGE TypeOperators, BangPatterns, ScopedTypeVariables #-}
 
 -- ---------------------------------------------------------------------------
 -- |
@@ -168,16 +168,21 @@ partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
   where c = (u + l) `div` 2
 {-# INLINE partialSortByBounds #-}
 
-partitionBy :: (PrimMonad m, MVector v e)
+partitionBy :: forall m v e. (PrimMonad m, MVector v e)
             => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 partitionBy cmp a = partUp
  where
+ -- 6.10 panics without the signatures for partUp and partDown, 6.12 and later
+ -- versions don't need them
+ partUp :: e -> Int -> Int -> m Int
  partUp p l u
    | l < u = do e <- unsafeRead a l
                 case cmp e p of
                   LT -> partUp p (l+1) u
                   _  -> partDown p l (u-1)
    | otherwise = return l
+
+ partDown :: e -> Int -> Int -> m Int
  partDown p l u
    | l < u = do e <- unsafeRead a u
                 case cmp p e of
