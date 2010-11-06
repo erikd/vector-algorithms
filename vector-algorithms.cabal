@@ -26,7 +26,7 @@ Flag InternalChecks
   Default: False
 
 Library
-    Build-Depends: base >= 3 && < 5, vector >= 0.5 && < 0.7, primitive >=0.2 && <0.4
+    Build-Depends: base >= 3 && < 5, vector >= 0.5 && < 0.8, primitive >=0.2 && <0.4
 
     Exposed-Modules:
         Data.Vector.Algorithms.Combinators
