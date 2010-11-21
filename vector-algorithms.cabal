@@ -29,7 +29,6 @@ Library
     Build-Depends: base >= 3 && < 5, vector >= 0.6 && < 0.8, primitive >=0.3 && <0.4
 
     Exposed-Modules:
-        Data.Vector.Algorithms.Combinators
         Data.Vector.Algorithms.Optimal
         Data.Vector.Algorithms.Insertion
         Data.Vector.Algorithms.Intro
