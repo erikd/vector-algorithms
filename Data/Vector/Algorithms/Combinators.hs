@@ -15,7 +15,7 @@
 -- applying the algorithms on mutable arrays to immutable arrays.
 
 module Data.Vector.Algorithms.Combinators
-       ( apply
+       (
 --       , usingKeys
 --       , usingIxKeys
        ) where
@@ -30,10 +30,6 @@ import Data.Vector.Generic
 
 import qualified Data.Vector.Generic.Mutable as M
 import qualified Data.Vector.Generic.New     as N
-
--- | Safely applies a mutable array algorithm to an immutable array.
-apply :: (Vector v e) => (forall s mv. M.MVector mv e => mv s e -> ST s ()) -> v e -> v e
-apply algo v = (new . N.modify algo) (N.unstream (stream v))
 
 {-
 -- | Uses a function to compute a key for each element which the
