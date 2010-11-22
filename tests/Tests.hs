@@ -20,8 +20,6 @@ import qualified Data.Vector as V
 import Data.Vector.Generic.Mutable (MVector)
 import qualified Data.Vector.Generic.Mutable as MV
 
-import Data.Vector.Algorithms.Combinators
-
 import qualified Data.Vector.Algorithms.Insertion as INS
 import qualified Data.Vector.Algorithms.Intro     as INT
 import qualified Data.Vector.Algorithms.Merge     as M

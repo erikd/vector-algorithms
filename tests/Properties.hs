@@ -22,7 +22,6 @@ import qualified Data.Vector.Generic.Mutable as G
 
 import Data.Vector.Algorithms.Optimal (Comparison)
 import Data.Vector.Algorithms.Radix (radix, passes, size)
-import Data.Vector.Algorithms.Combinators
 
 import qualified Data.Map as M
 
