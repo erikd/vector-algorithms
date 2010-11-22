@@ -156,11 +156,22 @@ prop_search_inrange algo (Sorted arr) e = forAll (ixRanges arr) $ \(i, j) ->
  where
  len = V.length arr
 
-prop_search_lowbound :: (Ord e)
-                     => (forall s. MVector s e -> e -> ST s Int)
-                     -> SortedVec e -> e -> Property
-prop_search_lowbound algo (Sorted arr) e = property $ (k == 0   || arr V.! (k-1) < e)
-                                                   && (k == len || arr V.! k >= e)
+prop_search_insert :: (e -> e -> Bool) -> (e -> e -> Bool)
+                   -> (forall s. MVector s e -> e -> ST s Int)
+                   -> SortedVec e -> e -> Property
+prop_search_insert lo hi algo (Sorted arr) e =
+  property $ (k == 0   || (arr V.! (k-1)) `lo` e)
+          && (k == len || (arr V.! k) `hi` e)
  where
  len = V.length arr
  k = runST (mfromList (V.toList arr) >>= \marr -> algo marr e)
+
+prop_search_lowbound :: (Ord e)
+                     => (forall s. MVector s e -> e -> ST s Int)
+                     -> SortedVec e -> e -> Property
+prop_search_lowbound = prop_search_insert (<) (>=)
+
+prop_search_upbound :: (Ord e)
+                    => (forall s. MVector s e -> e -> ST s Int)
+                    -> SortedVec e -> e -> Property
+prop_search_upbound = prop_search_insert (<=) (>)
