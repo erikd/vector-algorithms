@@ -2,20 +2,20 @@
 
 -- ---------------------------------------------------------------------------
 -- |
--- Module      : Data.Vector.Algorithms.TriHeap
--- Copyright   : (c) 2008-2010 Dan Doel
+-- Module      : Data.Vector.Algorithms.Heap
+-- Copyright   : (c) 2008-2011 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (type operators)
 --
--- This module implements operations for working with a trinary heap stored
+-- This module implements operations for working with a quaternary heap stored
 -- in an unboxed array. Most heapsorts are defined in terms of a binary heap,
 -- in which each internal node has at most two children. By contrast, a
--- trinary heap has internal nodes with up to three children. This reduces
+-- quaternary heap has internal nodes with up to four children. This reduces
 -- the number of comparisons in a heapsort slightly, and improves locality
 -- (again, slightly) by flattening out the heap.
 
-module Data.Vector.Algorithms.TriHeap
+module Data.Vector.Algorithms.Heap
        ( -- * Sorting
          sort
        , sortBy
@@ -40,6 +40,8 @@ import Prelude hiding (read, length)
 
 import Control.Monad
 import Control.Monad.Primitive
+
+import Data.Bits
 
 import Data.Vector.Generic.Mutable
 
@@ -138,7 +140,7 @@ partialSortByBounds cmp a k l u
 -- | Constructs a heap in a portion of an array [l, u)
 heapify :: (PrimMonad m, MVector v e)
         => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
-heapify cmp a l u = loop $ (len - 1) `div` 3
+heapify cmp a l u = loop $ (len - 1) `shiftR` 2
   where
  len = u - l
  loop k
@@ -189,13 +191,32 @@ siftByOffset cmp a val off start len = sift val start len
                         LT -> unsafeWrite a (root + off) ac >> sift val child' len
                         _  -> unsafeWrite a (root + off) val
    | otherwise = unsafeWrite a (root + off) val
-  where child = root * 3 + 1
+  where child = root `shiftL` 2 + 1
 {-# INLINE siftByOffset #-}
 
 -- Finds the maximum child of a heap node, given the indx of the first child.
 maximumChild :: (PrimMonad m, MVector v e)
              => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m (Int,  e)
 maximumChild cmp a off child1 len
+  | child4 < len = do ac1 <- unsafeRead a (child1 + off)
+                      ac2 <- unsafeRead a (child2 + off)
+                      ac3 <- unsafeRead a (child3 + off)
+                      ac4 <- unsafeRead a (child4 + off)
+                      return $ case cmp ac1 ac2 of
+                                 LT -> case cmp ac2 ac3 of
+                                         LT -> case cmp ac3 ac4 of
+                                                 LT -> (child4, ac4)
+                                                 _  -> (child3, ac3)
+                                         _  -> case cmp ac2 ac4 of
+                                                 LT -> (child4, ac4)
+                                                 _  -> (child2, ac2)
+                                 _  -> case cmp ac1 ac3 of
+                                         LT -> case cmp ac3 ac4 of
+                                                 LT -> (child4, ac4)
+                                                 _  -> (child3, ac3)
+                                         _  -> case cmp ac1 ac4 of
+                                                 LT -> (child4, ac4)
+                                                 _  -> (child1, ac1)
   | child3 < len = do ac1 <- unsafeRead a (child1 + off)
                       ac2 <- unsafeRead a (child2 + off)
                       ac3 <- unsafeRead a (child3 + off)
@@ -215,4 +236,5 @@ maximumChild cmp a off child1 len
  where
  child2 = child1 + 1
  child3 = child1 + 2
+ child4 = child1 + 3
 {-# INLINE maximumChild #-}

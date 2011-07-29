@@ -57,7 +57,7 @@ import Data.Vector.Algorithms.Common (Comparison)
 
 import qualified Data.Vector.Algorithms.Insertion as I
 import qualified Data.Vector.Algorithms.Optimal   as O
-import qualified Data.Vector.Algorithms.TriHeap   as H
+import qualified Data.Vector.Algorithms.Heap      as H
 
 -- | Sorts an entire array using the default ordering.
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()

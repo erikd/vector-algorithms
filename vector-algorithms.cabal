@@ -35,7 +35,7 @@ Library
         Data.Vector.Algorithms.Merge
         Data.Vector.Algorithms.Radix
         Data.Vector.Algorithms.Search
-        Data.Vector.Algorithms.TriHeap
+        Data.Vector.Algorithms.Heap
 
     Other-Modules:
         Data.Vector.Algorithms.Common
