@@ -18,6 +18,8 @@ import qualified Data.Vector as V
 import Data.Vector.Mutable (MVector)
 import qualified Data.Vector.Mutable as MV
 
+import Data.Vector.Generic (modify)
+
 import qualified Data.Vector.Generic.Mutable as G
 
 import Data.Vector.Algorithms.Optimal (Comparison)
@@ -38,7 +40,7 @@ prop_sorted arr | V.length arr < 2 = property True
 
 prop_fullsort :: (Ord e)
               => (forall s mv. G.MVector mv e => mv s e -> ST s ()) -> Vector e -> Property
-prop_fullsort algo arr = prop_sorted $ apply algo arr
+prop_fullsort algo arr = prop_sorted $ modify algo arr
 
 {-
 prop_schwartzian :: (UA e, UA k, Ord k)
@@ -47,7 +49,7 @@ prop_schwartzian :: (UA e, UA k, Ord k)
                  -> UArr e -> Property
 prop_schwartzian f algo arr
   | lengthU arr < 2 = property True
-  | otherwise       = let srt = apply (algo `usingKeys` f) arr
+  | otherwise       = let srt = modify (algo `usingKeys` f) arr
                       in check (headU srt) (tailU srt)
  where
  check e arr | nullU arr = property True
@@ -64,13 +66,13 @@ prop_partialsort :: (Ord e, Arbitrary e, Show e)
                  => (forall s mv. G.MVector mv e => mv s e -> Int -> ST s ())
                  -> Positive Int -> Property
 prop_partialsort = prop_sized $ \algo k ->
-  prop_sorted . V.take k . apply algo
+  prop_sorted . V.take k . modify algo
 
 prop_select :: (Ord e, Arbitrary e, Show e)
             => (forall s mv. G.MVector mv e => mv s e -> Int -> ST s ())
             -> Positive Int -> Property
 prop_select = prop_sized $ \algo k arr ->
-  let vec' = apply algo arr
+  let vec' = modify algo arr
       l    = V.slice 0 k vec'
       r    = V.slice k (V.length vec' - k) vec'
   in V.all (\e -> V.all (e <=) r) l
@@ -86,8 +88,8 @@ prop_sized prop algo (Positive k) =
 
 prop_stable :: (forall e s mv. G.MVector mv e => Comparison e -> mv s e -> ST s ())
             -> Vector Int -> Property
--- prop_stable algo arr = property $ apply algo arr == arr
-prop_stable algo arr = stable $ apply (algo (comparing fst)) $ V.zip arr ix
+-- prop_stable algo arr = property $ modify algo arr == arr
+prop_stable algo arr = stable $ modify (algo (comparing fst)) $ V.zip arr ix
  where
  ix = V.fromList [1 .. V.length arr]
 
@@ -100,7 +102,7 @@ prop_stable_radix :: (forall e s mv. G.MVector mv e => Int -> Int -> (Int -> e -
                         -> mv s e -> ST s ())
                   -> Vector Int -> Property
 prop_stable_radix algo arr =
-  stable . apply (algo (passes e) (size e) (\k (e, _) -> radix k e))
+  stable . modify (algo (passes e) (size e) (\k (e, _) -> radix k e))
          $ V.zip arr ix
  where
  ix = V.fromList [1 .. V.length arr]
@@ -113,13 +115,13 @@ prop_optimal n algo = label "sorting" sortn .&. label "stability" stabn
  where
  arrn  = V.fromList [0..n-1]
  sortn = all ( (== arrn)
-             . apply (\a -> algo compare a 0)
+             . modify (\a -> algo compare a 0)
              . V.fromList)
          $ permutations [0..n-1]
  stabn = all ( (== arrn)
              . snd
              . V.unzip
-             . apply (\a -> algo (comparing fst) a 0))
+             . modify (\a -> algo (comparing fst) a 0))
          $ stability n
 
 type Bag e = M.Map e Int
@@ -130,7 +132,7 @@ toBag = M.fromListWith (+) . flip zip (repeat 1) . V.toList
 prop_permutation :: (Ord e) => (forall s mv. G.MVector mv e => mv s e -> ST s ())
                  -> Vector e -> Property
 prop_permutation algo arr = property $ 
-                            toBag arr == toBag (apply algo arr)
+                            toBag arr == toBag (modify algo arr)
 
 newtype SortedVec e = Sorted (Vector e)
 

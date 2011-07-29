@@ -11,7 +11,7 @@ import Control.Monad
 import Data.List
 import Data.Function
 
-import Data.Vector.Generic hiding (map, zip, concatMap, (++), replicate)
+import Data.Vector.Generic hiding (map, zip, concatMap, (++), replicate, foldM)
 
 interleavings :: [a] -> [a] -> [[a]]
 interleavings [       ] ys        =  [ys]

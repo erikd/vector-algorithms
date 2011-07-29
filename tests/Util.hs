@@ -26,29 +26,3 @@ mfromList l = do v <- new (length l)
 instance (Arbitrary e) => Arbitrary (V.Vector e) where
   arbitrary = fmap V.fromList arbitrary
 
-instance Arbitrary Int8 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Int16 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Int32 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Int64 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Word8 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Word16 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Word32 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Word64 where
-  arbitrary = fromInteger `fmap` arbitrary
-
-instance Arbitrary Word where
-  arbitrary = fromInteger `fmap` arbitrary
