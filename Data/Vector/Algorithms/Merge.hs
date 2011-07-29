@@ -1,7 +1,7 @@
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Vector.Algorithms.Merge
--- Copyright   : (c) 2008-2010 Dan Doel
+-- Copyright   : (c) 2008-2011 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Portable
