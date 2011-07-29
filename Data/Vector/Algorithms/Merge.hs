@@ -72,7 +72,7 @@ merge cmp src buf mid = do unsafeCopy tmp lower
  upper = unsafeSlice mid (length src - mid) src
  tmp   = unsafeSlice 0   mid                buf
 
- loop low iLow eLow high iHigh eHigh iIns
+ loop !low !iLow !eLow !high !iHigh !eHigh !iIns
    | iLow  >= length low  = return ()
    | iHigh >= length high = unsafeCopy (unsafeSlice iIns (length low - iLow) src)
                                        (unsafeSlice iLow (length low - iLow) low)
