@@ -72,17 +72,22 @@ merge cmp src buf mid = do unsafeCopy tmp lower
  upper = unsafeSlice mid (length src - mid) src
  tmp   = unsafeSlice 0   mid                buf
 
- loop !low !iLow !eLow !high !iHigh !eHigh !iIns
-   | iLow  >= length low  = return ()
+ wroteHigh low iLow eLow high iHigh iIns
    | iHigh >= length high = unsafeCopy (unsafeSlice iIns (length low - iLow) src)
                                        (unsafeSlice iLow (length low - iLow) low)
-   | otherwise            = case cmp eHigh eLow of
-                             LT -> do unsafeWrite src iIns eHigh
-                                      eHigh <- unsafeRead high (iHigh + 1)
-                                      loop low iLow eLow high (iHigh + 1) eHigh (iIns + 1)
-                             _  -> do unsafeWrite src iIns eLow
-                                      eLow <- unsafeRead low (iLow + 1)
-                                      loop low (iLow + 1) eLow high iHigh eHigh (iIns + 1)
+   | otherwise            = do eHigh <- unsafeRead high iHigh
+                               loop low iLow eLow high iHigh eHigh iIns
+
+ wroteLow low iLow high iHigh eHigh iIns
+   | iLow  >= length low  = return ()
+   | otherwise            = do eLow <- unsafeRead low iLow
+                               loop low iLow eLow high iHigh eHigh iIns
+
+ loop !low !iLow !eLow !high !iHigh !eHigh !iIns = case cmp eHigh eLow of
+     LT -> do unsafeWrite src iIns eHigh
+              wroteHigh low iLow eLow high (iHigh + 1) (iIns + 1)
+     _  -> do unsafeWrite src iIns eLow
+              wroteLow low (iLow + 1) high iHigh eHigh (iIns + 1)
 {-# INLINE merge #-}
 
 threshold :: Int
