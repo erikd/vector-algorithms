@@ -24,7 +24,7 @@ import qualified Data.Vector.Algorithms.Insertion as INS
 import qualified Data.Vector.Algorithms.Intro     as INT
 import qualified Data.Vector.Algorithms.Merge     as M
 import qualified Data.Vector.Algorithms.Radix     as R
-import qualified Data.Vector.Algorithms.TriHeap   as TH
+import qualified Data.Vector.Algorithms.Heap      as H
 import qualified Data.Vector.Algorithms.Optimal   as O
 
 import qualified Data.Vector.Algorithms.Search    as SR
@@ -45,7 +45,7 @@ check_Int_sort = forM_ algos $ \(name,algo) ->
  algos = [ ("introsort", INT.sort)
          , ("insertion sort", INS.sort)
          , ("merge sort", M.sort)
-         , ("tri-heapsort", TH.sort)
+         , ("heapsort", H.sort)
          ]
 
 check_Int_partialsort = forM_ algos $ \(name,algo) ->
@@ -53,7 +53,7 @@ check_Int_partialsort = forM_ algos $ \(name,algo) ->
  where
  algos :: [(String, SizeAlgo Int ())]
  algos = [ ("intro-partialsort", INT.partialSort)
-         , ("tri-heap partialsort", TH.partialSort)
+         , ("heap partialsort", H.partialSort)
          ]
 
 check_Int_select = forM_ algos $ \(name,algo) ->
@@ -61,7 +61,7 @@ check_Int_select = forM_ algos $ \(name,algo) ->
  where
  algos :: [(String, SizeAlgo Int ())]
  algos = [ ("intro-select", INT.select)
-         , ("tri-heap select", TH.select)
+         , ("heap select", H.select)
          ]
 
 check_radix_sorts = do
@@ -102,11 +102,11 @@ check_permutation = do
                                          (INT.partialSort :: SizeAlgo Int ())
   qc $ label "introselect"  . prop_sized (const . prop_permutation)
                                          (INT.select :: SizeAlgo Int ())
-  qc $ label "heapsort"     . prop_permutation (TH.sort :: Algo Int ())
+  qc $ label "heapsort"     . prop_permutation (H.sort :: Algo Int ())
   qc $ label "heappartial"  . prop_sized (const . prop_permutation)
-                                         (TH.partialSort :: SizeAlgo Int ())
+                                         (H.partialSort :: SizeAlgo Int ())
   qc $ label "heapselect"   . prop_sized (const . prop_permutation)
-                                         (TH.select :: SizeAlgo Int ())
+                                         (H.select :: SizeAlgo Int ())
   qc $ label "mergesort"    . prop_permutation (M.sort :: Algo Int    ())
   qc $ label "radix I8"     . prop_permutation (R.sort :: Algo Int8   ())
   qc $ label "radix I16"    . prop_permutation (R.sort :: Algo Int16  ())
