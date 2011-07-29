@@ -16,7 +16,7 @@ import Data.Vector.Unboxed.Mutable
 
 import qualified Data.Vector.Algorithms.Insertion as INS
 import qualified Data.Vector.Algorithms.Intro     as INT
-import qualified Data.Vector.Algorithms.TriHeap   as TH
+import qualified Data.Vector.Algorithms.Heap      as H
 import qualified Data.Vector.Algorithms.Merge     as M
 import qualified Data.Vector.Algorithms.Radix     as R
 
@@ -67,9 +67,9 @@ data Algorithm = DoNothing
                | IntroSort
                | IntroPartialSort
                | IntroSelect
-               | TriHeapSort
-               | TriHeapPartialSort
-               | TriHeapSelect
+               | HeapSort
+               | HeapPartialSort
+               | HeapSelect
                | MergeSort
                | RadixSort
                deriving (Show, Read, Enum, Bounded)
@@ -131,9 +131,9 @@ runTest g n k alg = case alg of
   IntroSort          -> sortSuite        "introsort"             g n   introSort
   IntroPartialSort   -> partialSortSuite "partial introsort"     g n k introPSort
   IntroSelect        -> partialSortSuite "introselect"           g n k introSelect
-  TriHeapSort        -> sortSuite        "tri-heap sort"         g n   triHeapSort
-  TriHeapPartialSort -> partialSortSuite "partial tri-heap sort" g n k triHeapPSort
-  TriHeapSelect      -> partialSortSuite "tri-heap select"       g n k triHeapSelect
+  HeapSort           -> sortSuite        "heap sort"             g n   heapSort
+  HeapPartialSort    -> partialSortSuite "partial heap sort"     g n k heapPSort
+  HeapSelect         -> partialSortSuite "heap select"           g n k heapSelect
   MergeSort          -> sortSuite        "merge sort"            g n   mergeSort
   RadixSort          -> sortSuite        "radix sort"            g n   radixSort
   _                  -> putStrLn $ "Currently unsupported algorithm: " ++ show alg
@@ -154,17 +154,17 @@ introSelect :: MVector RealWorld Int -> Int -> IO ()
 introSelect v k = INT.select v k
 {-# NOINLINE introSelect #-}
 
-triHeapSort :: MVector RealWorld Int -> IO ()
-triHeapSort v = TH.sort v
-{-# NOINLINE triHeapSort #-}
+heapSort :: MVector RealWorld Int -> IO ()
+heapSort v = H.sort v
+{-# NOINLINE heapSort #-}
 
-triHeapPSort :: MVector RealWorld Int -> Int -> IO ()
-triHeapPSort v k = TH.partialSort v k
-{-# NOINLINE triHeapPSort #-}
+heapPSort :: MVector RealWorld Int -> Int -> IO ()
+heapPSort v k = H.partialSort v k
+{-# NOINLINE heapPSort #-}
 
-triHeapSelect :: MVector RealWorld Int -> Int -> IO ()
-triHeapSelect v k = TH.select v k
-{-# NOINLINE triHeapSelect #-}
+heapSelect :: MVector RealWorld Int -> Int -> IO ()
+heapSelect v k = H.select v k
+{-# NOINLINE heapSelect #-}
 
 insertionSort :: MVector RealWorld Int -> IO ()
 insertionSort v = INS.sort v
