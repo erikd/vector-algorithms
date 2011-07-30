@@ -43,7 +43,7 @@ import Control.Monad.Primitive
 import qualified Data.Vector.Primitive.Mutable as PV
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison, inc, countLoop)
+import Data.Vector.Algorithms.Common
 
 import Data.Bits
 import Data.Int

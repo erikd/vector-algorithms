@@ -33,6 +33,7 @@ inc :: (PrimMonad m, MVector v Int) => v (PrimState m) Int -> Int -> m Int
 inc arr i = unsafeRead arr i >>= \e -> unsafeWrite arr i (e+1) >> return e
 {-# INLINE inc #-}
 
+-- shared bucket sorting stuff
 countLoop :: (PrimMonad m, MVector v e)
           => (e -> Int)
           -> v (PrimState m) e -> PV.MVector (PrimState m) Int -> m ()
