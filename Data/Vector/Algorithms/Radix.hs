@@ -200,8 +200,7 @@ sortBy :: (PrimMonad m, MVector v e)
 sortBy passes size rdx arr = do
   tmp    <- new (length arr)
   count  <- new size
-  prefix <- new size
-  radixLoop passes rdx arr tmp count prefix
+  radixLoop passes rdx arr tmp count
 {-# INLINE sortBy #-}
 
 radixLoop :: (PrimMonad m, MVector v e)
@@ -210,15 +209,14 @@ radixLoop :: (PrimMonad m, MVector v e)
           -> v (PrimState m) e            -- array to sort
           -> v (PrimState m) e            -- temporary array
           -> PV.MVector (PrimState m) Int -- radix count array
-          -> PV.MVector (PrimState m) Int -- placement array
           -> m ()
-radixLoop passes rdx src dst count prefix = go False 0
+radixLoop passes rdx src dst count = go False 0
  where
  len = length src
  go swap k
    | k < passes = if swap
-                    then body rdx dst src count prefix k >> go (not swap) (k+1)
-                    else body rdx src dst count prefix k >> go (not swap) (k+1)
+                    then body rdx dst src count k >> go (not swap) (k+1)
+                    else body rdx src dst count k >> go (not swap) (k+1)
    | otherwise  = when swap (unsafeCopy src dst)
 {-# INLINE radixLoop #-}
 
@@ -227,30 +225,26 @@ body :: (PrimMonad m, MVector v e)
      -> v (PrimState m) e            -- source array
      -> v (PrimState m) e            -- destination array
      -> PV.MVector (PrimState m) Int -- radix count
-     -> PV.MVector (PrimState m) Int -- placement
      -> Int                          -- current pass
      -> m ()
-body rdx src dst count prefix k = do
+body rdx src dst count k = do
   set count 0
   countLoop (rdx k) src count
-  unsafeWrite prefix 0 0
-  prefixLoop count prefix
-  moveLoop k rdx src dst prefix
+  accumulate count
+  moveLoop k rdx src dst count
 {-# INLINE body #-}
 
-prefixLoop :: (PrimMonad m)
-           => PV.MVector (PrimState m) Int -> PV.MVector (PrimState m) Int
-           -> m ()
-prefixLoop count prefix = go 1 0
+accumulate :: (PrimMonad m)
+           => PV.MVector (PrimState m) Int -> m ()
+accumulate count = go 0 0
  where
  len = length count
- go i pi
-   | i < len   = do ci <- unsafeRead count (i-1)
-                    let pi' = pi + ci
-                    unsafeWrite prefix i pi'
-                    go (i+1) pi'
+ go i acc
+   | i < len   = do ci <- unsafeRead count i
+                    unsafeWrite count i acc
+                    go (i+1) (acc + ci)
    | otherwise = return ()
-{-# INLINE prefixLoop #-}
+{-# INLINE accumulate #-}
 
 moveLoop :: (PrimMonad m, MVector v e)
          => Int -> (Int -> e -> Int) -> v (PrimState m) e
