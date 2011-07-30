@@ -43,7 +43,7 @@ import Control.Monad.Primitive
 import qualified Data.Vector.Primitive.Mutable as PV
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison)
+import Data.Vector.Algorithms.Common (Comparison, inc, countLoop)
 
 import Data.Bits
 import Data.Int
@@ -232,22 +232,11 @@ body :: (PrimMonad m, MVector v e)
      -> m ()
 body rdx src dst count prefix k = do
   set count 0
-  countLoop k rdx src count
+  countLoop (rdx k) src count
   unsafeWrite prefix 0 0
   prefixLoop count prefix
   moveLoop k rdx src dst prefix
 {-# INLINE body #-}
-
-countLoop :: (PrimMonad m, MVector v e)
-          => Int -> (Int -> e -> Int)
-          -> v (PrimState m) e -> PV.MVector (PrimState m) Int -> m ()
-countLoop k rdx src count = go 0
- where
- len = length src
- go i
-   | i < len    = unsafeRead src i >>= inc count . rdx k >> go (i+1)
-   | otherwise  = return ()
-{-# INLINE countLoop #-}
 
 prefixLoop :: (PrimMonad m)
            => PV.MVector (PrimState m) Int -> PV.MVector (PrimState m) Int
@@ -277,6 +266,3 @@ moveLoop k rdx src dst prefix = go 0
    | otherwise  = return ()
 {-# INLINE moveLoop #-}
 
-inc :: (PrimMonad m) => PV.MVector (PrimState m) Int -> Int -> m Int
-inc arr i = unsafeRead arr i >>= \e -> unsafeWrite arr i (e+1) >> return e
-{-# INLINE inc #-}
