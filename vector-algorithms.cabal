@@ -36,6 +36,7 @@ Library
         Data.Vector.Algorithms.Radix
         Data.Vector.Algorithms.Search
         Data.Vector.Algorithms.Heap
+        Data.Vector.Algorithms.AmericanFlag
 
     Other-Modules:
         Data.Vector.Algorithms.Common
