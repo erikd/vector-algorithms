@@ -37,7 +37,7 @@ inc arr i = unsafeRead arr i >>= \e -> unsafeWrite arr i (e+1) >> return e
 countLoop :: (PrimMonad m, MVector v e)
           => (e -> Int)
           -> v (PrimState m) e -> PV.MVector (PrimState m) Int -> m ()
-countLoop rdx src count = go 0
+countLoop rdx src count = set count 0 >> go 0
  where
  len = length src
  go i

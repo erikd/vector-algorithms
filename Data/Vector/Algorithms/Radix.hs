@@ -228,7 +228,6 @@ body :: (PrimMonad m, MVector v e)
      -> Int                          -- current pass
      -> m ()
 body rdx src dst count k = do
-  set count 0
   countLoop (rdx k) src count
   accumulate count
   moveLoop k rdx src dst count
