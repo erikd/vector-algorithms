@@ -109,6 +109,7 @@ instance Lexicographic Int8 where
   size _ = 256
   {-# INLINE size #-}
   index _ n = 255 .&. fromIntegral n `xor` 128
+  {-# INLINE index #-}
 
 instance Lexicographic Int16 where
   terminate _ n = n > 1
@@ -197,7 +198,7 @@ flagLoop :: (PrimMonad m, MVector v e)
 flagLoop cmp stop radix count pile v = go 0 v
  where
 
- go pass v = do e <- read v 0
+ go pass v = do e <- unsafeRead v 0
                 unless (stop e $ pass - 1) $ go' pass v
 
  go' pass v
@@ -211,7 +212,7 @@ flagLoop cmp stop radix count pile v = go 0 v
 
   recurse i
     | i < len   = do j <- countStripe (radix ppass) (radix pass) count v i
-                     go ppass (slice i (j - i) v)
+                     go ppass (unsafeSlice i (j - i) v)
                      recurse j
     | otherwise = return ()
 {-# INLINE flagLoop #-}
@@ -225,10 +226,10 @@ accumulate count pile = loop 0 0
  len = length count
 
  loop i acc
-   | i < len = do ci <- read count i
+   | i < len = do ci <- unsafeRead count i
                   let acc' = acc + ci
-                  write pile i acc
-                  write count i acc'
+                  unsafeWrite pile i acc
+                  unsafeWrite count i acc'
                   loop (i+1) acc'
    | otherwise    = return ()
 {-# INLINE accumulate #-}
@@ -244,31 +245,31 @@ permute rdx count pile v = go 0
  len = length v
 
  go i
-   | i < len   = do e <- read v i
+   | i < len   = do e <- unsafeRead v i
                     let r = rdx e
-                    p <- read pile r
+                    p <- unsafeRead pile r
                     m <- if r > 0
-                            then read count (r-1)
+                            then unsafeRead count (r-1)
                             else return 0
                     case () of
-                      -- if the current element is already in the right pile,
+                      -- if the current element is alunsafeReady in the right pile,
                       -- go to the end of the pile
                       _ | m <= i && i < p  -> go p
                       -- if the current element happens to be in the right
                       -- pile, bump the pile counter and go to the next element
-                        | i == p           -> write pile r (p+1) >> go (i+1)
+                        | i == p           -> unsafeWrite pile r (p+1) >> go (i+1)
                       -- otherwise follow the chain
                         | otherwise        -> follow i e p >> go (i+1)
    | otherwise = return ()
  
- follow i e j = do en <- read v j
+ follow i e j = do en <- unsafeRead v j
                    let r = rdx en
                    p <- inc pile r
                    if p == j
                       -- if the target happens to be in the right pile, don't move it.
                       then follow i e (j+1)
-                      else write v j e >> if i == p
-                                             then write v i en
+                      else unsafeWrite v j e >> if i == p
+                                             then unsafeWrite v i en
                                              else follow i en p
 {-# INLINE permute #-}
 
@@ -280,14 +281,14 @@ countStripe :: (PrimMonad m, MVector v e)
             -> Int                          -- starting position
             -> m Int                        -- end of stripe: [lo,hi)
 countStripe rdx str count v lo = do set count 0
-                                    e <- read v lo
+                                    e <- unsafeRead v lo
                                     go (str e) e (lo+1)
  where
  len = length v
 
  go s e i = inc count (rdx e) >>
             if i < len
-               then do en <- read v i
+               then do en <- unsafeRead v i
                        if str en == s
                           then go s en (i+1)
                           else return i
