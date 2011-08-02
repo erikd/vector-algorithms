@@ -178,10 +178,12 @@ sortBy :: (PrimMonad m, MVector v e)
        -> (Int -> e -> Int)  -- big-endian radix
        -> v (PrimState m) e  -- the array to be sorted
        -> m ()
-sortBy cmp stop buckets radix v = do count <- new buckets
-                                     pile <- new buckets
-                                     countLoop (radix 0) v count
-                                     flagLoop cmp stop radix count pile v
+sortBy cmp stop buckets radix v
+  | length v == 0 = return ()
+  | otherwise     = do count <- new buckets
+                       pile <- new buckets
+                       countLoop (radix 0) v count
+                       flagLoop cmp stop radix count pile v
 {-# INLINE sortBy #-}
 
 flagLoop :: (PrimMonad m, MVector v e)
