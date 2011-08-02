@@ -14,11 +14,12 @@ import Data.List (maximumBy)
 
 import Data.Vector.Unboxed.Mutable
 
-import qualified Data.Vector.Algorithms.Insertion as INS
-import qualified Data.Vector.Algorithms.Intro     as INT
-import qualified Data.Vector.Algorithms.Heap      as H
-import qualified Data.Vector.Algorithms.Merge     as M
-import qualified Data.Vector.Algorithms.Radix     as R
+import qualified Data.Vector.Algorithms.Insertion    as INS
+import qualified Data.Vector.Algorithms.Intro        as INT
+import qualified Data.Vector.Algorithms.Heap         as H
+import qualified Data.Vector.Algorithms.Merge        as M
+import qualified Data.Vector.Algorithms.Radix        as R
+import qualified Data.Vector.Algorithms.AmericanFlag as AF
 
 import System.Environment
 import System.Console.GetOpt
@@ -72,6 +73,7 @@ data Algorithm = DoNothing
                | HeapSelect
                | MergeSort
                | RadixSort
+               | AmericanFlagSort
                deriving (Show, Read, Enum, Bounded)
 
 data Options = O { algos :: [Algorithm], elems :: Int, portion :: Int, usage :: Bool } deriving (Show)
@@ -103,7 +105,7 @@ options = [ Option ['A']     ["algorithm"] (ReqArg parseAlgo "ALGO")
 
 parseAlgo :: String -> Options -> Either String Options
 parseAlgo "None" o = Right $ o { algos = [] }
-parseAlgo "All"  o = Right $ o { algos = [DoNothing .. RadixSort] }
+parseAlgo "All"  o = Right $ o { algos = [DoNothing .. AmericanFlagSort] }
 parseAlgo s      o = leftMap (\e -> "Unrecognized algorithm `" ++ e ++ "'")
                      . fmap (\v -> o { algos = v : algos o }) $ readEither s
 
@@ -136,6 +138,7 @@ runTest g n k alg = case alg of
   HeapSelect         -> partialSortSuite "heap select"           g n k heapSelect
   MergeSort          -> sortSuite        "merge sort"            g n   mergeSort
   RadixSort          -> sortSuite        "radix sort"            g n   radixSort
+  AmericanFlagSort   -> sortSuite        "flag sort"             g n   flagSort
   _                  -> putStrLn $ "Currently unsupported algorithm: " ++ show alg
 
 mergeSort :: MVector RealWorld Int -> IO ()
@@ -173,6 +176,10 @@ insertionSort v = INS.sort v
 radixSort :: MVector RealWorld Int -> IO ()
 radixSort v = R.sort v
 {-# NOINLINE radixSort #-}
+
+flagSort :: MVector RealWorld Int -> IO ()
+flagSort v = AF.sort v
+{-# NOINLINE flagSort #-}
 
 main :: IO ()
 main = do args <- getArgs
