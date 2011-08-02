@@ -20,14 +20,15 @@ import qualified Data.Vector as V
 import Data.Vector.Generic.Mutable (MVector)
 import qualified Data.Vector.Generic.Mutable as MV
 
-import qualified Data.Vector.Algorithms.Insertion as INS
-import qualified Data.Vector.Algorithms.Intro     as INT
-import qualified Data.Vector.Algorithms.Merge     as M
-import qualified Data.Vector.Algorithms.Radix     as R
-import qualified Data.Vector.Algorithms.Heap      as H
-import qualified Data.Vector.Algorithms.Optimal   as O
+import qualified Data.Vector.Algorithms.Insertion    as INS
+import qualified Data.Vector.Algorithms.Intro        as INT
+import qualified Data.Vector.Algorithms.Merge        as M
+import qualified Data.Vector.Algorithms.Radix        as R
+import qualified Data.Vector.Algorithms.Heap         as H
+import qualified Data.Vector.Algorithms.Optimal      as O
+import qualified Data.Vector.Algorithms.AmericanFlag as AF
 
-import qualified Data.Vector.Algorithms.Search    as SR
+import qualified Data.Vector.Algorithms.Search       as SR
 
 type Algo      e r = forall s mv. MVector mv e => mv s e -> ST s r
 type SizeAlgo  e r = forall s mv. MVector mv e => mv s e -> Int -> ST s r
@@ -76,6 +77,18 @@ check_radix_sorts = do
   qc (label "Int64"       . prop_fullsort (R.sort :: Algo Int64  ()))
   qc (label "Int"         . prop_fullsort (R.sort :: Algo Int    ()))
   qc (label "(Int, Int)"  . prop_fullsort (R.sort :: Algo (Int, Int) ()))
+
+  qc (label "AF Word8"       . prop_fullsort (AF.sort :: Algo Word8  ()))
+  qc (label "AF Word16"      . prop_fullsort (AF.sort :: Algo Word16 ()))
+  qc (label "AF Word32"      . prop_fullsort (AF.sort :: Algo Word32 ()))
+  qc (label "AF Word64"      . prop_fullsort (AF.sort :: Algo Word64 ()))
+  qc (label "AF Word"        . prop_fullsort (AF.sort :: Algo Word   ()))
+  qc (label "AF Int8"        . prop_fullsort (AF.sort :: Algo Int8   ()))
+  qc (label "AF Int16"       . prop_fullsort (AF.sort :: Algo Int16  ()))
+  qc (label "AF Int32"       . prop_fullsort (AF.sort :: Algo Int32  ()))
+  qc (label "AF Int64"       . prop_fullsort (AF.sort :: Algo Int64  ()))
+  qc (label "AF Int"         . prop_fullsort (AF.sort :: Algo Int    ()))
+--  qc (label "AF (Int, Int)"  . prop_fullsort (R.sort :: Algo (Int, Int) ()))
  where
  qc algo = quickCheckWith args algo
 
