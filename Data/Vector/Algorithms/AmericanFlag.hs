@@ -286,7 +286,7 @@ countStripe rdx str count v lo = do set count 0
  where
  len = length v
 
- go s e i = inc count (rdx e) >>
+ go !s e i = inc count (rdx e) >>
             if i < len
                then do en <- unsafeRead v i
                        if str en == s
