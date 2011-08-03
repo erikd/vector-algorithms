@@ -3,7 +3,7 @@
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Vector.Algorithms.Radix
--- Copyright   : (c) 2008-2010 Dan Doel
+-- Copyright   : (c) 2008-2011 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (scoped type variables, bang patterns)

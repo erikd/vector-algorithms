@@ -3,7 +3,7 @@
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Vector.Algorithms.Common
--- Copyright   : (c) 2008-2010 Dan Doel
+-- Copyright   : (c) 2008-2011 Dan Doel
 -- Maintainer  : Dan Doel
 -- Stability   : Experimental
 -- Portability : Portable
