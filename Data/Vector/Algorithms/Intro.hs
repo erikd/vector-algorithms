@@ -118,7 +118,9 @@ selectBy cmp a k = selectByBounds cmp a k 0 (length a)
 -- [l,k+l) in no particular order.
 selectByBounds :: (PrimMonad m, MVector v e)
                => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
-selectByBounds cmp a k l u = go (ilg len) l (l + k) u
+selectByBounds cmp a k l u
+  | l >= u    = return ()
+  | otherwise = go (ilg len) l (l + k) u
  where
  len = u - l
  go 0 l m u = H.selectByBounds cmp a (m - l) l u
@@ -150,7 +152,9 @@ partialSortBy cmp a k = partialSortByBounds cmp a k 0 (length a)
 -- [l,k+l), sorted.
 partialSortByBounds :: (PrimMonad m, MVector v e)
                     => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
-partialSortByBounds cmp a k l u = go (ilg len) l (l + k) u
+partialSortByBounds cmp a k l u
+  | l >= u    = return ()
+  | otherwise = go (ilg len) l (l + k) u
  where
  len = u - l
  go 0 l m n = H.partialSortByBounds cmp a (m - l) l u
