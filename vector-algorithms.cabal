@@ -46,6 +46,7 @@ Library
         TypeOperators,
         Rank2Types,
         ScopedTypeVariables,
+        FlexibleContexts,
         CPP
 
     GHC-Options:
