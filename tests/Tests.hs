@@ -90,7 +90,7 @@ check_radix_sorts = do
   qc (label "flag Int32"       . prop_fullsort (AF.sort :: Algo Int32  ()))
   qc (label "flag Int64"       . prop_fullsort (AF.sort :: Algo Int64  ()))
   qc (label "flag Int"         . prop_fullsort (AF.sort :: Algo Int    ()))
---  qc (label "flag (Int, Int)"  . prop_fullsort (R.sort :: Algo (Int, Int) ()))
+  qc (label "flag ByteString"  . prop_fullsort (AF.sort :: Algo B.ByteString ()))
  where
  qc algo = quickCheckWith args algo
 
@@ -143,6 +143,7 @@ check_permutation = do
   qc $ label "flag W32"     . prop_permutation (AF.sort :: Algo Word32 ())
   qc $ label "flag W64"     . prop_permutation (AF.sort :: Algo Word64 ())
   qc $ label "flag Word"    . prop_permutation (AF.sort :: Algo Word   ())
+  qc $ label "flag ByteString" . prop_permutation (AF.sort :: Algo B.ByteString ())
  where
  qc prop = quickCheckWith args prop
 

@@ -8,6 +8,8 @@ import Control.Monad.ST
 import Data.Word
 import Data.Int
 
+import qualified Data.ByteString as B
+
 import qualified Data.Vector as V
 
 import Data.Vector.Mutable hiding (length)
@@ -25,4 +27,7 @@ mfromList l = do v <- new (length l)
 
 instance (Arbitrary e) => Arbitrary (V.Vector e) where
   arbitrary = fmap V.fromList arbitrary
+
+instance Arbitrary B.ByteString where
+  arbitrary = B.pack `fmap` arbitrary
 
