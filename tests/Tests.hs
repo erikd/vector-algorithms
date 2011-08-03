@@ -35,7 +35,7 @@ type SizeAlgo  e r = forall s mv. MVector mv e => mv s e -> Int -> ST s r
 type BoundAlgo e r = forall s mv. MVector mv e => mv s e -> Int -> Int -> ST s r
 
 args = stdArgs
-       { maxSuccess = 300
+       { maxSuccess = 1000
        , maxDiscard = 200
        }
 
