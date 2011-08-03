@@ -134,6 +134,19 @@ check_permutation = do
  where
  qc prop = quickCheckWith args prop
 
+check_corners = do
+  qc "introsort empty"    $ prop_empty       (INT.sort        :: Algo Int ())
+  qc "intropartial empty" $ prop_sized_empty (INT.partialSort :: SizeAlgo Int ())
+  qc "introselect empty"  $ prop_sized_empty (INT.select      :: SizeAlgo Int ())
+  qc "heapsort empty"     $ prop_empty       (H.sort          :: Algo Int ())
+  qc "heappartial empty"  $ prop_sized_empty (H.partialSort   :: SizeAlgo Int ())
+  qc "heapselect empty"   $ prop_sized_empty (H.select        :: SizeAlgo Int ())
+  qc "mergesort empty"    $ prop_empty       (M.sort          :: Algo Int ())
+  qc "radixsort empty"    $ prop_empty       (R.sort          :: Algo Int ())
+  qc "flagsort empty"     $ prop_empty       (AF.sort         :: Algo Int ())
+ where
+ qc s prop = quickCheckWith (stdArgs { maxSuccess = 2 }) (label s prop)
+
 type BoundSAlgo e r = forall s mv. MVector mv e => mv s e -> e -> Int -> Int -> ST s r
 
 check_search_range = do
@@ -160,3 +173,5 @@ main = do putStrLn "Int tests:"
           check_permutation
           putStrLn "Search in range:"
           check_search_range
+          putStrLn "Corner cases:"
+          check_corners
