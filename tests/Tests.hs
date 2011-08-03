@@ -14,6 +14,8 @@ import Control.Monad.ST
 import Data.Int
 import Data.Word
 
+import qualified Data.ByteString as B
+
 import Data.Vector (Vector)
 import qualified Data.Vector as V
 

@@ -27,6 +27,8 @@ import Data.Word
 import Data.Int
 import Data.Bits
 
+import qualified Data.ByteString as B
+
 import Data.Vector.Generic.Mutable
 import qualified Data.Vector.Primitive.Mutable as PV
 
@@ -163,6 +165,16 @@ instance Lexicographic Int where
   index 6 n = (n `shiftR`  8) .&. 255
   index 7 n = n .&. 255
   index _ _ = 0
+  {-# INLINE index #-}
+
+instance Lexicographic B.ByteString where
+  terminate b i = i >= B.length b
+  {-# INLINE terminate #-}
+  size _ = 257
+  {-# INLINE size #-}
+  index i b
+    | i >= B.length b = 0
+    | otherwise       = fromIntegral (B.index b i) + 1
   {-# INLINE index #-}
 
 sort :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
