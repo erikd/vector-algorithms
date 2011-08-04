@@ -6,13 +6,22 @@
 -- Copyright   : (c) 2011 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
--- Portability : Non-portable ()
+-- Portability : Non-portable (FlexibleContexts, ScopedTypeVariables)
 --
 -- This module implements American flag sort: an in-place, unstable, bucket
 -- sort. Also in contrast to radix sort, the values are inspected in a big
 -- endian order, and buckets are sorted via recursive splitting. This,
 -- however, makes it sensible for sorting strings in lexicographic order
 -- (provided indexing is fast).
+--
+-- The algorithm works as follows: at each stage, the array is looped over,
+-- counting the number of elements for each bucket. Then, starting at the
+-- beginning of the array, elements are permuted in place to reside in the
+-- proper bucket, following chains until they reach back to the current
+-- base index. Finally, each bucket is sorted recursively. This lends itself
+-- well to the aforementioned variable-length strings, and so the algorithm
+-- takes a stopping predicate, which is given a representative of the stripe,
+-- rather than running for a set number of iterations.
 
 module Data.Vector.Algorithms.AmericanFlag ( sort
                                            , sortBy
@@ -38,9 +47,18 @@ import Data.Vector.Algorithms.Common
 
 import qualified Data.Vector.Algorithms.Insertion as I
 
+-- | The methods of this class specify the information necessary to sort
+-- arrays using the default ordering. The name 'Lexicographic' is meant
+-- to convey that index should return results in a similar way to indexing
+-- into a string.
 class Lexicographic e where
+  -- | Given a representative of a stripe and an index number, this
+  -- function should determine whether to stop sorting.
   terminate :: e -> Int -> Bool
+  -- | The size of the bucket array necessary for sorting es
   size      :: e -> Int
+  -- | Determines which bucket a given element should inhabit for a
+  -- particular iteration.
   index     :: Int -> e -> Int
 
 instance Lexicographic Word8 where
@@ -177,6 +195,9 @@ instance Lexicographic B.ByteString where
     | otherwise       = fromIntegral (B.index b i) + 1
   {-# INLINE index #-}
 
+-- | Sorts an array using the default ordering. Both Lexicographic and
+-- Ord are necessary because the algorithm falls back to insertion sort
+-- for sufficiently small arrays.
 sort :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
      => v (PrimState m) e -> m ()
 sort v = sortBy compare terminate (size e) index v
@@ -184,12 +205,15 @@ sort v = sortBy compare terminate (size e) index v
        e = undefined
 {-# INLINE sort #-}
 
+-- | A fully parameterized version of the sorting algorithm. Again, this
+-- function takes both radix information and a comparison, because the
+-- algorithms falls back to insertion sort for small arrays.
 sortBy :: (PrimMonad m, MVector v e)
-       => Comparison e
-       -> (e -> Int -> Bool) -- a stopping predicate
-       -> Int                -- size of auxiliary arrays
-       -> (Int -> e -> Int)  -- big-endian radix
-       -> v (PrimState m) e  -- the array to be sorted
+       => Comparison e       -- ^ a comparison for the insertion sort flalback
+       -> (e -> Int -> Bool) -- ^ determines whether a stripe is complete
+       -> Int                -- ^ the number of buckets necessary
+       -> (Int -> e -> Int)  -- ^ the big-endian radix function
+       -> v (PrimState m) e  -- ^ the array to be sorted
        -> m ()
 sortBy cmp stop buckets radix v
   | length v == 0 = return ()
