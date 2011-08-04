@@ -25,6 +25,7 @@
 
 module Data.Vector.Algorithms.AmericanFlag ( sort
                                            , sortBy
+                                           , Lexicographic(..)
                                            ) where
 
 import Prelude hiding (read, length)
