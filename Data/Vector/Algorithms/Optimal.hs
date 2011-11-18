@@ -75,7 +75,7 @@ sort3ByOffset cmp a off = sort3ByIndex cmp a off (off + 1) (off + 2)
 sort3ByIndex :: (PrimMonad m, MVector v e)
              => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
 sort3ByIndex cmp a i j k = UNSAFE_CHECK(checkIndex) "sort3ByIndex" i (length a)
-                         $ UNSAFE_CHECK(checkIndex) "sort3ByIndex" j (length a) 
+                         $ UNSAFE_CHECK(checkIndex) "sort3ByIndex" j (length a)
                          $ UNSAFE_CHECK(checkIndex) "sort3ByIndex" k (length a) $ do
   a0 <- unsafeRead a i
   a1 <- unsafeRead a j

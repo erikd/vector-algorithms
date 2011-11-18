@@ -33,7 +33,7 @@ module Data.Vector.Algorithms.Intro
        ( -- * Sorting
          sort
        , sortBy
-       , sortByBounds 
+       , sortByBounds
          -- * Selecting
        , select
        , selectBy

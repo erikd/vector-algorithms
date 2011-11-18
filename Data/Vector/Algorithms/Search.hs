@@ -53,7 +53,7 @@ binarySearchByBounds :: (PrimMonad m, MVector v e)
                      => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 binarySearchByBounds cmp vec e = loop
  where
- loop !l !u 
+ loop !l !u
    | u <= l    = return l
    | otherwise = do e' <- unsafeRead vec k
                     case cmp e' e of
@@ -69,7 +69,7 @@ binarySearchL :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> e -> 
 binarySearchL = binarySearchLBy compare
 {-# INLINE binarySearchL #-}
 
--- | Finds the lowest index in a given vector, which must be sorted with respect to 
+-- | Finds the lowest index in a given vector, which must be sorted with respect to
 -- the given comparison function, at which the given element could be inserted
 -- while preserving the sortedness.
 binarySearchLBy :: (PrimMonad m, MVector v e)

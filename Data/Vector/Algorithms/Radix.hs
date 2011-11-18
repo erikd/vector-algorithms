@@ -8,7 +8,7 @@
 -- Stability   : Experimental
 -- Portability : Non-portable (scoped type variables, bang patterns)
 --
--- This module provides a radix sort for a subclass of unboxed arrays. The 
+-- This module provides a radix sort for a subclass of unboxed arrays. The
 -- radix class gives information on
 --   * the number of passes needed for the data type
 --
@@ -77,7 +77,7 @@ instance Radix Int8 where
   {-# INLINE passes #-}
   size _ = 256
   {-# INLINE size #-}
-  radix _ e = 255 .&. fromIntegral e `xor` 128 
+  radix _ e = 255 .&. fromIntegral e `xor` 128
   {-# INLINE radix #-}
 
 instance Radix Int16 where
