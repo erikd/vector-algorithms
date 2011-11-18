@@ -18,6 +18,9 @@ module Data.Vector.Algorithms.Search
        , binarySearchL
        , binarySearchLBy
        , binarySearchLByBounds
+       , binarySearchR
+       , binarySearchRBy
+       , binarySearchRByBounds
        , Comparison
        ) where
 
