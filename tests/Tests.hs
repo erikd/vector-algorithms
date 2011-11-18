@@ -160,13 +160,20 @@ check_corners = do
  where
  qc s prop = quickCheckWith (stdArgs { maxSuccess = 2 }) (label s prop)
 
+type SAlgo e r = forall s mv. MVector mv e => mv s e -> e -> ST s r
 type BoundSAlgo e r = forall s mv. MVector mv e => mv s e -> e -> Int -> Int -> ST s r
 
 check_search_range = do
-  qc $ (label "binarySearchL" .) 
+  qc $ (label "binarySearchL" .)
          . prop_search_inrange (SR.binarySearchLByBounds compare :: BoundSAlgo Int Int)
+  qc $ (label "binarySearchL lo-bound" .)
+         . prop_search_lowbound (SR.binarySearchL :: SAlgo Int Int)
   qc $ (label "binarySearch" .)
          . prop_search_inrange (SR.binarySearchByBounds compare :: BoundSAlgo Int Int)
+  qc $ (label "binarySearchR" .)
+         . prop_search_inrange (SR.binarySearchRByBounds compare :: BoundSAlgo Int Int)
+  qc $ (label "binarySearchR hi-bound" .)
+         . prop_search_upbound (SR.binarySearchR :: SAlgo Int Int)
  where
  qc prop = quickCheckWith args prop
 
