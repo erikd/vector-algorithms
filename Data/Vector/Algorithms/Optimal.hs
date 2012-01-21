@@ -46,7 +46,7 @@ import Data.Vector.Algorithms.Common (Comparison)
 sort2ByOffset :: (PrimMonad m, MVector v e)
               => Comparison e -> v (PrimState m) e -> Int -> m ()
 sort2ByOffset cmp a off = sort2ByIndex cmp a off (off + 1)
-{-# INLINE sort2ByOffset #-}
+{-# INLINABLE sort2ByOffset #-}
 
 -- | Sorts the elements at the two given indices using the comparison. This
 -- is essentially a compare-and-swap, although the first index is assumed to
@@ -60,13 +60,13 @@ sort2ByIndex cmp a i j = UNSAFE_CHECK(checkIndex) "sort2ByIndex" i (length a)
   case cmp a0 a1 of
     GT -> unsafeWrite a i a1 >> unsafeWrite a j a0
     _  -> return ()
-{-# INLINE sort2ByIndex #-}
+{-# INLINABLE sort2ByIndex #-}
 
 -- | Sorts the three elements starting at the given offset in the array.
 sort3ByOffset :: (PrimMonad m, MVector v e)
               => Comparison e -> v (PrimState m) e -> Int -> m ()
 sort3ByOffset cmp a off = sort3ByIndex cmp a off (off + 1) (off + 2)
-{-# INLINE sort3ByOffset #-}
+{-# INLINABLE sort3ByOffset #-}
 
 -- | Sorts the elements at the three given indices. The indices are assumed
 -- to be given from lowest to highest, so if 'l < m < u' then
@@ -98,13 +98,13 @@ sort3ByIndex cmp a i j k = UNSAFE_CHECK(checkIndex) "sort3ByIndex" i (length a)
                     _  -> do unsafeWrite a j a2
                              unsafeWrite a k a1
             _  -> return ()
-{-# INLINE sort3ByIndex #-}
+{-# INLINABLE sort3ByIndex #-}
 
 -- | Sorts the four elements beginning at the offset.
 sort4ByOffset :: (PrimMonad m, MVector v e)
               => Comparison e -> v (PrimState m) e -> Int -> m ()
 sort4ByOffset cmp a off = sort4ByIndex cmp a off (off + 1) (off + 2) (off + 3)
-{-# INLINE sort4ByOffset #-}
+{-# INLINABLE sort4ByOffset #-}
 
 -- The horror...
 
@@ -241,4 +241,4 @@ sort4ByIndex cmp a i j k l = UNSAFE_CHECK(checkIndex) "sort4ByIndex" i (length a
                                      -- unsafeWrite a k a2
                                      -- unsafeWrite a l a3
                                      return ()
-{-# INLINE sort4ByIndex #-}
+{-# INLINABLE sort4ByIndex #-}

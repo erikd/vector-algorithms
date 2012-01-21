@@ -204,7 +204,7 @@ sort :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
 sort v = sortBy compare terminate (size e) index v
  where e :: e
        e = undefined
-{-# INLINE sort #-}
+{-# INLINABLE sort #-}
 
 -- | A fully parameterized version of the sorting algorithm. Again, this
 -- function takes both radix information and a comparison, because the
