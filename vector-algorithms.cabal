@@ -30,6 +30,10 @@ flag bench
                performance
   default: False
 
+flag properties
+  description: Enable the quickcheck tests
+  default: True
+
 source-repository head
   type:     darcs
   location: http://hub.darcs.net/dolio/vector-algorithms
@@ -96,3 +100,23 @@ executable vector-algorithms-bench
   extensions:
       Rank2Types
 
+test-suite properties
+  hs-source-dirs: tests
+  type: exitcode-stdio-1.0
+  main-is: Tests.hs
+
+  other-modules:
+    Optimal
+    Properties
+    Util
+
+  if !flag(properties)
+    buildable: False
+  else
+    build-depends:
+      base,
+      bytestring,
+      containers,
+      QuickCheck >= 2,
+      vector,
+      vector-algorithms
