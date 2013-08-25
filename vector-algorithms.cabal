@@ -25,6 +25,11 @@ flag InternalChecks
                significant performance penalty.
   Default: False
 
+flag bench
+  Description: Build a benchmarking program to test vector-algorithms
+               performance
+  default: False
+
 source-repository head
   type:     darcs
   location: http://hub.darcs.net/dolio/vector-algorithms
@@ -76,4 +81,18 @@ library
 
     if flag(InternalChecks)
         cpp-options: -DVECTOR_INTERNAL_CHECKS
+
+executable vector-algorithms-bench
+  hs-source-dirs: bench
+
+  if !flag(bench)
+    buildable: False
+
+  main-is: Main.hs
+
+  build-depends: base, mersenne-random, vector, vector-algorithms, mtl
+  ghc-options: -Wall -Odph
+
+  extensions:
+      Rank2Types
 
