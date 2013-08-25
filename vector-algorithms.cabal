@@ -94,7 +94,7 @@ executable vector-algorithms-bench
 
   main-is: Main.hs
 
-  build-depends: base, mersenne-random, vector, vector-algorithms, mtl
+  build-depends: base, mwc-random, vector, vector-algorithms, mtl
   ghc-options: -Wall -Odph
 
   extensions:

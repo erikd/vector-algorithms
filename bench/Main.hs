@@ -23,7 +23,7 @@ import qualified Data.Vector.Algorithms.AmericanFlag as AF
 
 import System.Environment
 import System.Console.GetOpt
-import System.Random.Mersenne
+import System.Random.MWC
 
 import Blocks
 
@@ -44,7 +44,7 @@ displayTime s elapsed = putStrLn $
 run :: String -> IO Integer -> IO ()
 run s t = t >>= displayTime s
 
-sortSuite :: String -> MTGen -> Int -> (MVector RealWorld Int -> IO ()) -> IO ()
+sortSuite :: String -> GenIO -> Int -> (MVector RealWorld Int -> IO ()) -> IO ()
 sortSuite str g n sort = do
   putStrLn $ "Testing: " ++ str
   run "Random            " $ speedTest n (rand g >=> modulo n) sort
@@ -54,7 +54,7 @@ sortSuite str g n sort = do
   let m = 4 * (n `div` 4)
   run "Median killer     " $ speedTest m (medianKiller m) sort
 
-partialSortSuite :: String -> MTGen -> Int -> Int
+partialSortSuite :: String -> GenIO -> Int -> Int
                  -> (MVector RealWorld Int -> Int -> IO ()) -> IO ()
 partialSortSuite str g n k sort = sortSuite str g n (\a -> sort a k)
 
@@ -125,7 +125,7 @@ readEither s = case reads s of
   [(x,t)] | all isSpace t -> Right x
   _                       -> Left s
 
-runTest :: MTGen -> Int -> Int -> Algorithm -> IO ()
+runTest :: GenIO -> Int -> Int -> Algorithm -> IO ()
 runTest g n k alg = case alg of
   DoNothing          -> sortSuite        "no algorithm"          g n   noalgo
   Allocate           -> sortSuite        "allocate"              g n   alloc
@@ -182,14 +182,13 @@ flagSort v = AF.sort v
 {-# NOINLINE flagSort #-}
 
 main :: IO ()
-main = do args <- getArgs
-          gen  <- getStdGen
-          case getOpt Permute options args of
-            (fs, _, []) -> case foldl (>>=) (Right defaultOptions) fs of
-              Left err   -> putStrLn $ usageInfo err options
-              Right opts | not (usage opts) ->
-                mapM_ (runTest gen (elems opts) (portion opts)) (algos opts)
-                         | otherwise -> putStrLn $ usageInfo "uvector-algorithms-bench" options
-            (_, _, errs) -> putStrLn $ usageInfo (concat errs) options
+main = getArgs >>= \args -> withSystemRandom $ \gen ->
+  case getOpt Permute options args of
+    (fs, _, []) -> case foldl (>>=) (Right defaultOptions) fs of
+      Left err   -> putStrLn $ usageInfo err options
+      Right opts | not (usage opts) ->
+        mapM_ (runTest gen (elems opts) (portion opts)) (algos opts)
+                 | otherwise -> putStrLn $ usageInfo "uvector-algorithms-bench" options
+    (_, _, errs) -> putStrLn $ usageInfo (concat errs) options
 
 

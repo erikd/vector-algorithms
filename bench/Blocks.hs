@@ -9,7 +9,7 @@ import Data.Vector.Unboxed.Mutable
 
 import System.CPUTime
 
-import System.Random.Mersenne
+import System.Random.MWC (GenIO, Variate(..))
 
 -- Some conveniences for doing evil stuff in the ST monad.
 -- All the tests get run in IO, but uvector stuff happens
@@ -18,8 +18,8 @@ clock :: IO Integer
 clock = getCPUTime
 
 -- Strategies for filling the initial arrays
-rand :: (MTRandom e) => MTGen -> Int -> IO e
-rand g _ = random g
+rand :: Variate e => GenIO -> Int -> IO e
+rand g _ = uniform g
 
 ascend :: Num e => Int -> IO e
 ascend = return . fromIntegral
