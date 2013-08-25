@@ -25,6 +25,10 @@ flag InternalChecks
                significant performance penalty.
   Default: False
 
+source-repository head
+  type:     darcs
+  location: http://hub.darcs.net/dolio/vector-algorithms
+
 library
     build-depends: base >= 3 && < 5,
                    vector >= 0.6 && < 0.11,
