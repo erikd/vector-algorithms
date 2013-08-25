@@ -21,6 +21,8 @@ module Data.Vector.Algorithms.Search
        , binarySearchR
        , binarySearchRBy
        , binarySearchRByBounds
+       , binarySearchP
+       , binarySearchPBounds
        , Comparison
        ) where
 
@@ -85,15 +87,8 @@ binarySearchLBy cmp vec e = binarySearchLByBounds cmp vec e 0 (length vec)
 -- inserted while preserving sortedness.
 binarySearchLByBounds :: (PrimMonad m, MVector v e)
                       => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
-binarySearchLByBounds cmp vec e = loop
- where
- loop !l !u
-   | u <= l    = return l
-   | otherwise = do e' <- unsafeRead vec k
-                    case cmp e' e of
-                      LT -> loop (k+1) u
-                      _  -> loop l     k
-  where k = (u + l) `shiftR` 1
+binarySearchLByBounds cmp vec e = binarySearchPBounds p vec
+ where p e' = case cmp e' e of LT -> False ; _ -> True
 {-# INLINE binarySearchLByBounds #-}
 
 -- | Finds the greatest index in a given sorted vector at which the given element
@@ -115,13 +110,26 @@ binarySearchRBy cmp vec e = binarySearchRByBounds cmp vec e 0 (length vec)
 -- inserted while preserving sortedness.
 binarySearchRByBounds :: (PrimMonad m, MVector v e)
                       => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
-binarySearchRByBounds cmp vec e = loop
+binarySearchRByBounds cmp vec e = binarySearchPBounds p vec
+ where p e' = case cmp e' e of GT -> True ; _ -> False
+{-# INLINE binarySearchRByBounds #-}
+
+-- | Given a predicate that is guaraneteed to be monotone on the given vector,
+-- finds the first index at which the predicate returns True, or the length of
+-- the array if the predicate is false for the entire array.
+binarySearchP :: (PrimMonad m, MVector v e) => (e -> Bool) -> v (PrimState m) e -> m Int
+binarySearchP p vec = binarySearchPBounds p vec 0 (length vec)
+{-# INLINE binarySearchP #-}
+
+-- | Given a predicate that is guaranteed to be monotone on the indices [l,u) in
+-- a given vector, finds the index in [l,u] at which the predicate turns from
+-- False to True (yielding u if the entire interval is False).
+binarySearchPBounds :: (PrimMonad m, MVector v e)
+                    => (e -> Bool) -> v (PrimState m) e -> Int -> Int -> m Int
+binarySearchPBounds p vec = loop
  where
  loop !l !u
    | u <= l    = return l
-   | otherwise = do e' <- unsafeRead vec k
-                    case cmp e' e of
-                      GT -> loop l     k
-                      _  -> loop (k+1) u
-  where k = (u + l) `shiftR` 1
-{-# INLINE binarySearchRByBounds #-}
+   | otherwise = unsafeRead vec k >>= \e -> if p e then loop l k else loop (k+1) u
+  where k = (u + 1) `shiftR` 1
+{-# INLINE binarySearchPBounds #-}
