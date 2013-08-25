@@ -38,7 +38,7 @@ type BoundAlgo e r = forall s mv. MVector mv e => mv s e -> Int -> Int -> ST s r
 
 args = stdArgs
        { maxSuccess = 1000
-       , maxDiscard = 200
+       , maxDiscardRatio = 2
        }
 
 check_Int_sort = forM_ algos $ \(name,algo) ->
