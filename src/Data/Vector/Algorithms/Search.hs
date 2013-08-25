@@ -131,5 +131,5 @@ binarySearchPBounds p vec = loop
  loop !l !u
    | u <= l    = return l
    | otherwise = unsafeRead vec k >>= \e -> if p e then loop l k else loop (k+1) u
-  where k = (u + 1) `shiftR` 1
+  where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchPBounds #-}
