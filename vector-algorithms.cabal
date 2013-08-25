@@ -12,21 +12,21 @@ build-type:        Simple
 cabal-version:     >= 1.9.2
 
 flag BoundsChecks
-  Description: Enable bounds checking
-  Default: True
+  description: Enable bounds checking
+  default: True
 
 flag UnsafeChecks
-  Description: Enable bounds checking in unsafe operations at the cost of a
+  description: Enable bounds checking in unsafe operations at the cost of a
                significant performance penalty.
-  Default: False
+  default: False
 
 flag InternalChecks
-  Description: Enable internal consistency checks at the cost of a
+  description: Enable internal consistency checks at the cost of a
                significant performance penalty.
-  Default: False
+  default: False
 
 flag bench
-  Description: Build a benchmarking program to test vector-algorithms
+  description: Build a benchmarking program to test vector-algorithms
                performance
   default: False
 
