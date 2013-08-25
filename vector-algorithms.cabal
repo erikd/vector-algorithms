@@ -101,7 +101,7 @@ executable vector-algorithms-bench
       Rank2Types
 
 test-suite properties
-  hs-source-dirs: tests
+  hs-source-dirs: tests/properties
   type: exitcode-stdio-1.0
   main-is: Tests.hs
 
