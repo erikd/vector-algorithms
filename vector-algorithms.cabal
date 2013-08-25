@@ -1,37 +1,37 @@
-Name:              vector-algorithms
-Version:           0.5.4.2
-License:           BSD3
-License-File:      LICENSE
-Author:            Dan Doel
-Maintainer:        Dan Doel <dan.doel@gmail.com>
-Homepage:          http://code.haskell.org/~dolio/
-Category:          Data
-Synopsis:          Efficient algorithms for vector arrays
-Description:       Efficient algorithms for vector arrays
-Build-Type:        Simple
-Cabal-Version:     >= 1.2.3
+name:              vector-algorithms
+version:           0.6
+license:           BSD3
+license-file:      LICENSE
+author:            Dan Doel
+maintainer:        Dan Doel <dan.doel@gmail.com>
+homepage:          http://code.haskell.org/~dolio/
+category:          Data
+synopsis:          Efficient algorithms for vector arrays
+description:       Efficient algorithms for vector arrays
+build-type:        Simple
+cabal-version:     >= 1.9.2
 
-Flag BoundsChecks
+flag BoundsChecks
   Description: Enable bounds checking
   Default: True
 
-Flag UnsafeChecks
+flag UnsafeChecks
   Description: Enable bounds checking in unsafe operations at the cost of a
                significant performance penalty.
   Default: False
 
-Flag InternalChecks
+flag InternalChecks
   Description: Enable internal consistency checks at the cost of a
                significant performance penalty.
   Default: False
 
-Library
-    Build-Depends: base >= 3 && < 5,
+library
+    build-depends: base >= 3 && < 5,
                    vector >= 0.6 && < 0.11,
                    primitive >=0.3 && <0.6,
                    bytestring >= 0.9 && < 1.0
 
-    Exposed-Modules:
+    exposed-modules:
         Data.Vector.Algorithms.Optimal
         Data.Vector.Algorithms.Insertion
         Data.Vector.Algorithms.Intro
@@ -41,10 +41,10 @@ Library
         Data.Vector.Algorithms.Heap
         Data.Vector.Algorithms.AmericanFlag
 
-    Other-Modules:
+    other-modules:
         Data.Vector.Algorithms.Common
 
-    Extensions:
+    extensions:
         BangPatterns,
         TypeOperators,
         Rank2Types,
@@ -52,14 +52,14 @@ Library
         FlexibleContexts,
         CPP
 
-    GHC-Options:
+    ghc-options:
         -Odph
         -funbox-strict-fields
 
-    Include-Dirs:
+    include-dirs:
         include
 
-    Install-Includes:
+    install-includes:
         vector.h
 
     if flag(BoundsChecks)
