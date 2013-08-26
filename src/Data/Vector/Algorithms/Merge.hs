@@ -1,3 +1,5 @@
+{-# LANGUAGE BangPatterns #-}
+
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Vector.Algorithms.Merge

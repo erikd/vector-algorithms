@@ -1,4 +1,6 @@
-{-# LANGUAGE FlexibleContexts, ScopedTypeVariables #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# lANGUAGE ScopedTypeVariables #-}
 
 -- ---------------------------------------------------------------------------
 -- |

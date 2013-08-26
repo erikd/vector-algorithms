@@ -59,14 +59,6 @@ library
     other-modules:
         Data.Vector.Algorithms.Common
 
-    extensions:
-        BangPatterns,
-        TypeOperators,
-        Rank2Types,
-        ScopedTypeVariables,
-        FlexibleContexts,
-        CPP
-
     ghc-options:
         -Odph
         -funbox-strict-fields
@@ -96,9 +88,6 @@ executable vector-algorithms-bench
 
   build-depends: base, mwc-random, vector, vector-algorithms, mtl
   ghc-options: -Wall -Odph
-
-  extensions:
-      Rank2Types
 
 test-suite properties
   hs-source-dirs: tests/properties
