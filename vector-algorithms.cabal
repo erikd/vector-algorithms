@@ -40,44 +40,44 @@ source-repository head
   location: http://hub.darcs.net/dolio/vector-algorithms
 
 library
-    hs-source-dirs: src
+  hs-source-dirs: src
 
-    build-depends: base >= 3 && < 5,
-                   vector >= 0.6 && < 0.11,
-                   primitive >=0.3 && <0.6,
-                   bytestring >= 0.9 && < 1.0
+  build-depends: base >= 3 && < 5,
+                 vector >= 0.6 && < 0.11,
+                 primitive >=0.3 && <0.6,
+                 bytestring >= 0.9 && < 1.0
 
-    exposed-modules:
-        Data.Vector.Algorithms.Optimal
-        Data.Vector.Algorithms.Insertion
-        Data.Vector.Algorithms.Intro
-        Data.Vector.Algorithms.Merge
-        Data.Vector.Algorithms.Radix
-        Data.Vector.Algorithms.Search
-        Data.Vector.Algorithms.Heap
-        Data.Vector.Algorithms.AmericanFlag
+  exposed-modules:
+    Data.Vector.Algorithms.Optimal
+    Data.Vector.Algorithms.Insertion
+    Data.Vector.Algorithms.Intro
+    Data.Vector.Algorithms.Merge
+    Data.Vector.Algorithms.Radix
+    Data.Vector.Algorithms.Search
+    Data.Vector.Algorithms.Heap
+    Data.Vector.Algorithms.AmericanFlag
 
-    other-modules:
-        Data.Vector.Algorithms.Common
+  other-modules:
+    Data.Vector.Algorithms.Common
 
-    ghc-options:
-        -Odph
-        -funbox-strict-fields
+  ghc-options:
+    -Odph
+    -funbox-strict-fields
 
-    include-dirs:
-        include
+  include-dirs:
+    include
 
-    install-includes:
-        vector.h
+  install-includes:
+    vector.h
 
-    if flag(BoundsChecks)
-        cpp-options: -DVECTOR_BOUNDS_CHECKS
+  if flag(BoundsChecks)
+    cpp-options: -DVECTOR_BOUNDS_CHECKS
 
-    if flag(UnsafeChecks)
-        cpp-options: -DVECTOR_UNSAFE_CHECKS
+  if flag(UnsafeChecks)
+    cpp-options: -DVECTOR_UNSAFE_CHECKS
 
-    if flag(InternalChecks)
-        cpp-options: -DVECTOR_INTERNAL_CHECKS
+  if flag(InternalChecks)
+    cpp-options: -DVECTOR_INTERNAL_CHECKS
 
 executable vector-algorithms-bench
   hs-source-dirs: bench
