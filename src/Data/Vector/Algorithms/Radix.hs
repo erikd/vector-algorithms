@@ -31,7 +31,7 @@
 --   Thus, b/r = 4 passes are required, 2^r = 256 elements are needed in an
 --   auxiliary array, and the radix function is:
 --
---    > radix k e = (e `shiftR` (k*8)) .&. 256
+--    > radix k e = (e `shiftR` (k*8)) .&. 255
 
 module Data.Vector.Algorithms.Radix (sort, sortBy, Radix(..)) where
 
