@@ -87,6 +87,9 @@ executable vector-algorithms-bench
 
   main-is: Main.hs
 
+  other-modules:
+    Blocks
+
   build-depends: base, mwc-random, vector, vector-algorithms, mtl
   ghc-options: -Wall -Odph
 
