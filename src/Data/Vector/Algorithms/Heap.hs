@@ -52,7 +52,7 @@ import qualified Data.Vector.Algorithms.Optimal as O
 -- | Sorts an entire array using the default ordering.
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
-{-# INLINABLE sort #-}
+{-# INLINE sort #-}
 
 -- | Sorts an entire array using a custom ordering.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
