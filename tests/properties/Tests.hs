@@ -29,6 +29,7 @@ import qualified Data.Vector.Algorithms.Radix        as R
 import qualified Data.Vector.Algorithms.Heap         as H
 import qualified Data.Vector.Algorithms.Optimal      as O
 import qualified Data.Vector.Algorithms.AmericanFlag as AF
+import qualified Data.Vector.Algorithms.Tim          as T
 
 import qualified Data.Vector.Algorithms.Search       as SR
 
@@ -49,6 +50,7 @@ check_Int_sort = forM_ algos $ \(name,algo) ->
          , ("insertion sort", INS.sort)
          , ("merge sort", M.sort)
          , ("heapsort", H.sort)
+         , ("timsort", T.sort)
          ]
 
 check_Int_partialsort = forM_ algos $ \(name,algo) ->
@@ -104,6 +106,8 @@ check_schwartzian = do
 
 check_stable = do quickCheckWith args (label "merge sort" . prop_stable M.sortBy)
                   quickCheckWith args (label "radix sort" . prop_stable_radix R.sortBy)
+                  quickCheckWith args (label "tim sort" . prop_stable T.sortBy)
+
 
 check_optimal = do qc . label "size 2" $ prop_optimal 2 O.sort2ByOffset
                    qc . label "size 3" $ prop_optimal 3 O.sort3ByOffset
@@ -123,6 +127,7 @@ check_permutation = do
   qc $ label "heapselect"   . prop_sized (const . prop_permutation)
                                          (H.select :: SizeAlgo Int ())
   qc $ label "mergesort"    . prop_permutation (M.sort :: Algo Int    ())
+  qc $ label "timsort"      . prop_permutation (T.sort :: Algo Int    ())
   qc $ label "radix I8"     . prop_permutation (R.sort :: Algo Int8   ())
   qc $ label "radix I16"    . prop_permutation (R.sort :: Algo Int16  ())
   qc $ label "radix I32"    . prop_permutation (R.sort :: Algo Int32  ())
@@ -155,6 +160,7 @@ check_corners = do
   qc "heappartial empty"  $ prop_sized_empty (H.partialSort   :: SizeAlgo Int ())
   qc "heapselect empty"   $ prop_sized_empty (H.select        :: SizeAlgo Int ())
   qc "mergesort empty"    $ prop_empty       (M.sort          :: Algo Int ())
+  qc "timsort empty"      $ prop_empty       (T.sort          :: Algo Int ())
   qc "radixsort empty"    $ prop_empty       (R.sort          :: Algo Int ())
   qc "flagsort empty"     $ prop_empty       (AF.sort         :: Algo Int ())
  where

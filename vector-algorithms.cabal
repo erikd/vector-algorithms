@@ -56,6 +56,7 @@ library
     Data.Vector.Algorithms.Search
     Data.Vector.Algorithms.Heap
     Data.Vector.Algorithms.AmericanFlag
+    Data.Vector.Algorithms.Tim
 
   other-modules:
     Data.Vector.Algorithms.Common

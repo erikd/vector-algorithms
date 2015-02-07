@@ -20,6 +20,7 @@ import qualified Data.Vector.Algorithms.Heap         as H
 import qualified Data.Vector.Algorithms.Merge        as M
 import qualified Data.Vector.Algorithms.Radix        as R
 import qualified Data.Vector.Algorithms.AmericanFlag as AF
+import qualified Data.Vector.Algorithms.Tim          as T
 
 import System.Environment
 import System.Console.GetOpt
@@ -74,6 +75,7 @@ data Algorithm = DoNothing
                | MergeSort
                | RadixSort
                | AmericanFlagSort
+               | TimSort
                deriving (Show, Read, Enum, Bounded)
 
 data Options = O { algos :: [Algorithm], elems :: Int, portion :: Int, usage :: Bool } deriving (Show)
@@ -139,6 +141,7 @@ runTest g n k alg = case alg of
   MergeSort          -> sortSuite        "merge sort"            g n   mergeSort
   RadixSort          -> sortSuite        "radix sort"            g n   radixSort
   AmericanFlagSort   -> sortSuite        "flag sort"             g n   flagSort
+  TimSort            -> sortSuite        "tim sort"              g n   timSort
   _                  -> putStrLn $ "Currently unsupported algorithm: " ++ show alg
 
 mergeSort :: MVector RealWorld Int -> IO ()
@@ -180,6 +183,10 @@ radixSort v = R.sort v
 flagSort :: MVector RealWorld Int -> IO ()
 flagSort v = AF.sort v
 {-# NOINLINE flagSort #-}
+
+timSort :: MVector RealWorld Int -> IO ()
+timSort v = T.sort v
+{-# NOINLINE timSort #-}
 
 main :: IO ()
 main = getArgs >>= \args -> withSystemRandom $ \gen ->
