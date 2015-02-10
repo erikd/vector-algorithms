@@ -36,6 +36,10 @@ flag properties
   description: Enable the quickcheck tests
   default: True
 
+flag dump-simpl
+  description: Dumps the simplified core during compilation
+  default: False
+
 source-repository head
   type:     darcs
   location: http://hub.darcs.net/dolio/vector-algorithms
@@ -65,6 +69,9 @@ library
   ghc-options:
     -Odph
     -funbox-strict-fields
+
+  if flag(dump-simpl)
+    ghc-options: -ddump-simpl -ddump-to-file
 
   include-dirs:
     include
