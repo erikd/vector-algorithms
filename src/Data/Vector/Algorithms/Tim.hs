@@ -117,7 +117,9 @@ sortBy cmp vec
    | runLengthInvariantBroken a b c i =
      if i - c <= b - a
        then merge cmp vec b c i tmpBuf >>= performMerges (b:a:ss) i
-       else merge cmp vec a b c tmpBuf >>= performMerges (c:a:ss) i
+       else do tmpBuf' <- merge cmp vec a b c tmpBuf
+               (ass', tmpBuf'') <- performMerges (a:ss) c tmpBuf'
+               performMerges (c:ass') i tmpBuf''
  performMerges s _ tmpBuf = return (s, tmpBuf)
  performRemainingMerges (b:a:ss) tmpBuf =
    merge cmp vec a b len tmpBuf >>= performRemainingMerges (a:ss)
