@@ -1,5 +1,5 @@
 name:              vector-algorithms
-version:           0.7
+version:           0.6.0.3
 license:           BSD3
 license-file:      LICENSE
 author:            Dan Doel
@@ -49,7 +49,7 @@ library
 
   build-depends: base >= 3 && < 5,
                  vector >= 0.6 && < 0.11,
-                 primitive >=0.3 && <0.6,
+                 primitive >=0.3 && <0.7,
                  bytestring >= 0.9 && < 1.0
 
   exposed-modules:
