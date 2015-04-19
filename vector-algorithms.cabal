@@ -102,6 +102,9 @@ executable vector-algorithms-bench
   build-depends: base, mwc-random, vector, vector-algorithms, mtl
   ghc-options: -Wall -Odph
 
+  if flag(dump-simpl)
+    ghc-options: -ddump-simpl -ddump-to-file
+
 test-suite properties
   hs-source-dirs: tests/properties
   type: exitcode-stdio-1.0
