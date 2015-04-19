@@ -292,7 +292,7 @@ permute rdx count pile v = go 0
                             then unsafeRead count (r-1)
                             else return 0
                     case () of
-                      -- if the current element is alunsafeReady in the right pile,
+                      -- if the current element is already in the right pile,
                       -- go to the end of the pile
                       _ | m <= i && i < p  -> go p
                       -- if the current element happens to be in the right
