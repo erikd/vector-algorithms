@@ -34,6 +34,7 @@ module Data.Vector.Algorithms.Heap
        , pop
        , popTo
        , sortHeap
+       , heapInsert
        , Comparison
        ) where
 
@@ -139,6 +140,10 @@ partialSortByBounds cmp a k l u
 {-# INLINE partialSortByBounds #-}
 
 -- | Constructs a heap in a portion of an array [l, u)
+--
+-- Note: 'heapify' is more efficient than constructing a heap by repeated
+-- insertion. Repeated insertion has complexity O(n*log n) while 'heapify' is able
+-- to construct a heap in O(n), where n is the number of elements in the heap.
 heapify :: (PrimMonad m, MVector v e)
         => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
 heapify cmp a l u = loop $ (len - 1) `shiftR` 2
@@ -178,6 +183,24 @@ sortHeap cmp a l m u = loop (u-1) >> unsafeSwap a l m
    | m < k     = pop cmp a l k >> loop (k-1)
    | otherwise = return ()
 {-# INLINE sortHeap #-}
+
+-- | Given a heap stored in a portion of an array [l,u) and an element e,
+-- inserts the element into the heap, resulting in a heap in [l,u].
+--
+-- Note: it is best to only use this operation when incremental construction of
+-- a heap is required. 'heapify' is capable of building a heap in O(n) time,
+-- while repeated insertion takes O(n*log n) time.
+heapInsert :: (PrimMonad m, MVector v e)
+           => Comparison e -> v (PrimState m) e -> Int -> Int -> e -> m ()
+heapInsert cmp v l u e = sift (u - l)
+ where
+ sift k
+   | k <= 0    = unsafeWrite v l e
+   | otherwise = let pi = l + shiftR (k-1) 2
+                  in unsafeRead v pi >>= \p -> case cmp p e of
+                       LT -> unsafeWrite v (l + k) p >> sift pi
+                       _  -> unsafeWrite v (l + k) e
+{-# INLINE heapInsert #-}
 
 -- Rebuilds a heap with a hole in it from start downwards. Afterward,
 -- the heap property should apply for [start + off, len + off). val
