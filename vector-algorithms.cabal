@@ -40,6 +40,10 @@ flag dump-simpl
   description: Dumps the simplified core during compilation
   default: False
 
+flag llvm
+  description: Build using llvm
+  default: False
+
 source-repository head
   type:     darcs
   location: http://hub.darcs.net/dolio/vector-algorithms
@@ -73,6 +77,9 @@ library
   if flag(dump-simpl)
     ghc-options: -ddump-simpl -ddump-to-file
 
+  if flag(llvm)
+    ghc-options: -fllvm
+
   include-dirs:
     include
 
@@ -105,6 +112,9 @@ executable vector-algorithms-bench
   if flag(dump-simpl)
     ghc-options: -ddump-simpl -ddump-to-file
 
+  if flag(llvm)
+    ghc-options: -fllvm
+
 test-suite properties
   hs-source-dirs: tests/properties
   type: exitcode-stdio-1.0
@@ -125,3 +135,6 @@ test-suite properties
       QuickCheck >= 2,
       vector,
       vector-algorithms
+
+  if flag(llvm)
+    ghc-options: -fllvm
