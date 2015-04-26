@@ -62,8 +62,13 @@ sortBy cmp a = sortByBounds cmp a 0 (length a)
 {-# INLINE sortBy #-}
 
 -- | Sorts a portion of an array [l,u) using a custom ordering
-sortByBounds :: (PrimMonad m, MVector v e)
-             => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
+sortByBounds
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ lower index, l
+  -> Int -- ^ upper index, u
+  -> m ()
 sortByBounds cmp a l u
   | len < 2   = return ()
   | len == 2  = O.sort2ByOffset cmp a l
@@ -75,22 +80,37 @@ sortByBounds cmp a l u
 
 -- | Moves the lowest k elements to the front of the array.
 -- The elements will be in no particular order.
-select :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
+select
+  :: (PrimMonad m, MVector v e, Ord e)
+  => v (PrimState m) e
+  -> Int -- ^ number of elements to select, k
+  -> m ()
 select = selectBy compare
 {-# INLINE select #-}
 
--- | Moves the 'lowest' (as defined by the comparison) k elements
+-- | Moves the lowest (as defined by the comparison) k elements
 -- to the front of the array. The elements will be in no particular
 -- order.
-selectBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> Int -> m ()
+selectBy
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to select, k
+  -> m ()
 selectBy cmp a k = selectByBounds cmp a k 0 (length a)
 {-# INLINE selectBy #-}
 
 -- | Moves the 'lowest' k elements in the portion [l,u) of the
 -- array into the positions [l,k+l). The elements will be in
 -- no particular order.
-selectByBounds :: (PrimMonad m, MVector v e)
-               => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
+selectByBounds
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to select, k
+  -> Int -- ^ lower index, l
+  -> Int -- ^ upper index, u
+  -> m ()
 selectByBounds cmp a k l u
   | l + k <= u = heapify cmp a l (l + k) >> go l (l + k) (u - 1)
   | otherwise  = return ()
@@ -106,21 +126,42 @@ selectByBounds cmp a k l u
 {-# INLINE selectByBounds #-}
 
 -- | Moves the lowest k elements to the front of the array, sorted.
-partialSort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
+--
+-- The remaining values of the array will be in no particular order.
+partialSort
+  :: (PrimMonad m, MVector v e, Ord e)
+  => v (PrimState m) e
+  -> Int -- ^ number of elements to sort, k
+  -> m ()
 partialSort = partialSortBy compare
 {-# INLINE partialSort #-}
 
 -- | Moves the lowest k elements (as defined by the comparison) to
 -- the front of the array, sorted.
-partialSortBy :: (PrimMonad m, MVector v e)
-              => Comparison e -> v (PrimState m) e -> Int -> m ()
+--
+-- The remaining values of the array will be in no particular order.
+partialSortBy
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to sort, k
+  -> m ()
 partialSortBy cmp a k = partialSortByBounds cmp a k 0 (length a)
 {-# INLINE partialSortBy #-}
 
 -- | Moves the lowest k elements in the portion [l,u) of the array
 -- into positions [l,k+l), sorted.
-partialSortByBounds :: (PrimMonad m, MVector v e)
-                    => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
+--
+-- The remaining values in [l,u) will be in no particular order. Values outside
+-- the range [l,u) will be unaffected.
+partialSortByBounds
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to sort, k
+  -> Int -- ^ lower index, l
+  -> Int -- ^ upper index, u
+  -> m ()
 partialSortByBounds cmp a k l u
   -- this potentially does more work than absolutely required,
   -- but using a heap to find the least 2 of 4 elements
@@ -139,13 +180,18 @@ partialSortByBounds cmp a k l u
  len = u - l
 {-# INLINE partialSortByBounds #-}
 
--- | Constructs a heap in a portion of an array [l, u)
+-- | Constructs a heap in a portion of an array [l, u), using the values therein.
 --
 -- Note: 'heapify' is more efficient than constructing a heap by repeated
 -- insertion. Repeated insertion has complexity O(n*log n) while 'heapify' is able
 -- to construct a heap in O(n), where n is the number of elements in the heap.
-heapify :: (PrimMonad m, MVector v e)
-        => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
+heapify
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ lower index, l
+  -> Int -- ^ upper index, u
+  -> m ()
 heapify cmp a l u = loop $ (len - 1) `shiftR` 2
   where
  len = u - l
@@ -157,15 +203,26 @@ heapify cmp a l u = loop $ (len - 1) `shiftR` 2
 
 -- | Given a heap stored in a portion of an array [l,u), swaps the
 -- top of the heap with the element at u and rebuilds the heap.
-pop :: (PrimMonad m, MVector v e)
-    => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
+pop
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ lower heap index, l
+  -> Int -- ^ upper heap index, u
+  -> m ()
 pop cmp a l u = popTo cmp a l u u
 {-# INLINE pop #-}
 
 -- | Given a heap stored in a portion of an array [l,u) swaps the top
 -- of the heap with the element at position t, and rebuilds the heap.
-popTo :: (PrimMonad m, MVector v e)
-      => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
+popTo
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ lower heap index, l
+  -> Int -- ^ upper heap index, u
+  -> Int -- ^ index to pop to, t
+  -> m ()
 popTo cmp a l u t = do al <- unsafeRead a l
                        at <- unsafeRead a t
                        unsafeWrite a t al
@@ -175,8 +232,14 @@ popTo cmp a l u t = do al <- unsafeRead a l
 -- | Given a heap stored in a portion of an array [l,u), sorts the
 -- highest values into [m,u). The elements in [l,m) are not in any
 -- particular order.
-sortHeap :: (PrimMonad m, MVector v e)
-         => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
+sortHeap
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ lower heap index, l
+  -> Int -- ^ lower bound of final sorted portion, m
+  -> Int -- ^ upper heap index, u
+  -> m ()
 sortHeap cmp a l m u = loop (u-1) >> unsafeSwap a l m
  where
  loop k
@@ -190,8 +253,14 @@ sortHeap cmp a l m u = loop (u-1) >> unsafeSwap a l m
 -- Note: it is best to only use this operation when incremental construction of
 -- a heap is required. 'heapify' is capable of building a heap in O(n) time,
 -- while repeated insertion takes O(n*log n) time.
-heapInsert :: (PrimMonad m, MVector v e)
-           => Comparison e -> v (PrimState m) e -> Int -> Int -> e -> m ()
+heapInsert
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ lower heap index, l
+  -> Int -- ^ upper heap index, u
+  -> e -- ^ element to be inserted, e
+  -> m ()
 heapInsert cmp v l u e = sift (u - l)
  where
  sift k

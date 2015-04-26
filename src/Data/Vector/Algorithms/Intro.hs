@@ -73,8 +73,13 @@ sortBy cmp a = sortByBounds cmp a 0 (length a)
 {-# INLINE sortBy #-}
 
 -- | Sorts a portion of an array [l,u) using a custom ordering
-sortByBounds :: (PrimMonad m, MVector v e)
-             => Comparison e -> v (PrimState m) e -> Int -> Int -> m ()
+sortByBounds
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ lower index, l
+  -> Int -- ^ upper index, u
+  -> m ()
 sortByBounds cmp a l u
   | len < 2   = return ()
   | len == 2  = O.sort2ByOffset cmp a l
@@ -106,21 +111,35 @@ introsort cmp a i l u = sort i l u >> I.sortByBounds cmp a l u
 
 -- | Moves the least k elements to the front of the array in
 -- no particular order.
-select :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
+select
+  :: (PrimMonad m, MVector v e, Ord e)
+  => v (PrimState m) e
+  -> Int -- ^ number of elements to select, k
+  -> m ()
 select = selectBy compare
 {-# INLINE select #-}
 
 -- | Moves the least k elements (as defined by the comparison) to
 -- the front of the array in no particular order.
-selectBy :: (PrimMonad m, MVector v e)
-         => Comparison e -> v (PrimState m) e -> Int -> m ()
+selectBy
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to select, k
+  -> m ()
 selectBy cmp a k = selectByBounds cmp a k 0 (length a)
 {-# INLINE selectBy #-}
 
 -- | Moves the least k elements in the interval [l,u) to the positions
 -- [l,k+l) in no particular order.
-selectByBounds :: (PrimMonad m, MVector v e)
-               => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
+selectByBounds
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to select, k
+  -> Int -- ^ lower bound, l
+  -> Int -- ^ upper bound, u
+  -> m ()
 selectByBounds cmp a k l u
   | l >= u    = return ()
   | otherwise = go (ilg len) l (l + k) u
@@ -140,21 +159,35 @@ selectByBounds cmp a k l u
 {-# INLINE selectByBounds #-}
 
 -- | Moves the least k elements to the front of the array, sorted.
-partialSort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> Int -> m ()
+partialSort
+  :: (PrimMonad m, MVector v e, Ord e)
+  => v (PrimState m) e
+  -> Int -- ^ number of elements to sort, k
+  -> m ()
 partialSort = partialSortBy compare
 {-# INLINE partialSort #-}
 
 -- | Moves the least k elements (as defined by the comparison) to
 -- the front of the array, sorted.
-partialSortBy :: (PrimMonad m, MVector v e)
-              => Comparison e -> v (PrimState m) e -> Int -> m ()
+partialSortBy
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to sort, k
+  -> m ()
 partialSortBy cmp a k = partialSortByBounds cmp a k 0 (length a)
 {-# INLINE partialSortBy #-}
 
 -- | Moves the least k elements in the interval [l,u) to the positions
 -- [l,k+l), sorted.
-partialSortByBounds :: (PrimMonad m, MVector v e)
-                    => Comparison e -> v (PrimState m) e -> Int -> Int -> Int -> m ()
+partialSortByBounds
+  :: (PrimMonad m, MVector v e)
+  => Comparison e
+  -> v (PrimState m) e
+  -> Int -- ^ number of elements to sort, k
+  -> Int -- ^ lower index, l
+  -> Int -- ^ upper index, u
+  -> m ()
 partialSortByBounds cmp a k l u
   | l >= u    = return ()
   | otherwise = go (ilg len) l (l + k) u
@@ -181,8 +214,6 @@ partitionBy :: forall m v e. (PrimMonad m, MVector v e)
             => Comparison e -> v (PrimState m) e -> e -> Int -> Int -> m Int
 partitionBy cmp a = partUp
  where
- -- 6.10 panics without the signatures for partUp and partDown, 6.12 and later
- -- versions don't need them
  partUp :: e -> Int -> Int -> m Int
  partUp p l u
    | l < u = do e <- unsafeRead a l
