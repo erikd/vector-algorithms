@@ -187,7 +187,7 @@ gallopingSearchLeftPBounds p vec l u
                    if p x then return l else iter (l+1) l 2
  where
  binSearch = binarySearchPBounds p vec
- iter !i !j _stepSize | i >= u - 1 = do
+ iter !i !j !_stepSize | i >= u - 1 = do
    x <- unsafeRead vec (u-1)
    if p x then binSearch (j+1) (u-1) else return u
  iter !i !j !stepSize = do
@@ -210,7 +210,7 @@ gallopingSearchRightPBounds p vec l u
   | otherwise = iter (u-1) (u-1) (-1)
  where
  binSearch = binarySearchPBounds p vec
- iter !i !j _stepSize | i <= l = do
+ iter !i !j !_stepSize | i <= l = do
    x <- unsafeRead vec l
    if p x then return l else binSearch (l+1) j
  iter !i !j !stepSize = do
