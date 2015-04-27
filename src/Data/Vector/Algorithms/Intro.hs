@@ -6,7 +6,7 @@
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Vector.Algorithms.Intro
--- Copyright   : (c) 2008-2011 Dan Doel
+-- Copyright   : (c) 2008-2015 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (type operators, bang patterns)

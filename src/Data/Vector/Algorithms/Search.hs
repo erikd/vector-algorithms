@@ -4,7 +4,7 @@
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Vector.Algorithms.Search
--- Copyright   : (c) 2009-2010 Dan Doel
+-- Copyright   : (c) 2009-2015 Dan Doel, 2015 Tim Baumann
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (bang patterns)

@@ -4,7 +4,7 @@
 -- ---------------------------------------------------------------------------
 -- |
 -- Module      : Data.Vector.Algorithms.Heap
--- Copyright   : (c) 2008-2011 Dan Doel
+-- Copyright   : (c) 2008-2015 Dan Doel
 -- Maintainer  : Dan Doel <dan.doel@gmail.com>
 -- Stability   : Experimental
 -- Portability : Non-portable (type operators)
