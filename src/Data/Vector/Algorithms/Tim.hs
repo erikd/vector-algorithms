@@ -66,8 +66,28 @@
 -- violate either of the invariants, we first perform a merge.
 --
 -- If length x + length y >= length z, then y is merged with the smaller of x
--- and z (if they are tied, x is chosen). If, further,  length x >= length y
--- then they are merged.
+-- and z (if they are tied, x is chosen, because it is more likely to be
+-- cached). If, further,  length x >= length y then they are merged. These steps
+-- are repeated until the invariants are established.
+--
+-- The last important piece of the algorithm is the merging. At first, two
+-- chunks are merged element-wise. However, while doing so, counts are kept of
+-- the number of elements taken from one chunk without any from its partner. If
+-- this count exceeds a threshold, the merge switches to searching for elements
+-- from one chunk in the other, and copying chunks at a time. If these chunks
+-- start falling below the threshold, the merge switches back to element-wise.
+--
+-- The search used in the merge is also special. It uses a galloping strategy,
+-- where exponentially increasing indices are tested, and once two such indices
+-- are determined to bracket the desired value, binary search is used to find
+-- the exact index within that range. This is asymptotically the same as simply
+-- using binary search, but is likely to do fewer comparisons than binary search
+-- would.
+--
+-- One aspect that is not yet implemented from the original Tim sort is the
+-- adjustment of the above threshold. When galloping saves time, the threshold
+-- is lowered, and when it doesn't, it is raised. This may be implemented in the
+-- future.
 
 module Data.Vector.Algorithms.Tim
        ( sort
