@@ -24,6 +24,10 @@ module Data.Vector.Algorithms.Search
        , binarySearchRByBounds
        , binarySearchP
        , binarySearchPBounds
+       , gallopingSearchLeftP
+       , gallopingSearchLeftPBounds
+       , gallopingSearchRightP
+       , gallopingSearchRightPBounds
        , Comparison
        ) where
 
@@ -134,3 +138,72 @@ binarySearchPBounds p vec = loop
    | otherwise = unsafeRead vec k >>= \e -> if p e then loop l k else loop (k+1) u
   where k = (u + l) `shiftR` 1
 {-# INLINE binarySearchPBounds #-}
+
+-- | Given a predicate that is guaranteed to be monotone on the vector elements
+-- in order, finds the index at which the predicate turns from False to True.
+-- The length of the vector is returned if the predicate is False for the entire
+-- vector.
+--
+-- Begins searching at the start of the vector, in increasing steps of size 2^n.
+gallopingSearchLeftP
+  :: (PrimMonad m, MVector v e) => (e -> Bool) -> v (PrimState m) e -> m Int
+gallopingSearchLeftP p vec = gallopingSearchLeftPBounds p vec 0 (length vec)
+{-# INLINE gallopingSearchLeftP #-}
+
+-- | Given a predicate that is guaranteed to be monotone on the vector elements
+-- in order, finds the index at which the predicate turns from False to True.
+-- The length of the vector is returned if the predicate is False for the entire
+-- vector.
+--
+-- Begins searching at the end of the vector, in increasing steps of size 2^n.
+gallopingSearchRightP
+  :: (PrimMonad m, MVector v e) => (e -> Bool) -> v (PrimState m) e -> m Int
+gallopingSearchRightP p vec = gallopingSearchRightPBounds p vec 0 (length vec)
+{-# INLINE gallopingSearchRightP #-}
+
+-- | Given a predicate that is guaranteed to be monotone on the indices [l,u) in
+-- a given vector, finds the index in [l,u] at which the predicate turns from
+-- False to True (yielding u if the entire interval is False).
+-- Begins searching at l, going right in increasing (2^n)-steps.
+gallopingSearchLeftPBounds :: (PrimMonad m, MVector v e)
+                           => (e -> Bool)
+                           -> v (PrimState m) e
+                           -> Int -- ^ l
+                           -> Int -- ^ u
+                           -> m Int
+gallopingSearchLeftPBounds p vec l u
+  | u <= l    = return l
+  | otherwise = do x <- unsafeRead vec l
+                   if p x then return l else iter (l+1) l 2
+ where
+ binSearch = binarySearchPBounds p vec
+ iter !i !j !_stepSize | i >= u - 1 = do
+   x <- unsafeRead vec (u-1)
+   if p x then binSearch (j+1) (u-1) else return u
+ iter !i !j !stepSize = do
+   x <- unsafeRead vec i
+   if p x then binSearch (j+1) i else iter (i+stepSize) i (2*stepSize)
+{-# INLINE gallopingSearchLeftPBounds #-}
+
+-- | Given a predicate that is guaranteed to be monotone on the indices [l,u) in
+-- a given vector, finds the index in [l,u] at which the predicate turns from
+-- False to True (yielding u if the entire interval is False).
+-- Begins searching at u, going left in increasing (2^n)-steps.
+gallopingSearchRightPBounds :: (PrimMonad m, MVector v e)
+                            => (e -> Bool)
+                            -> v (PrimState m) e
+                            -> Int -- ^ l
+                            -> Int -- ^ u
+                            -> m Int
+gallopingSearchRightPBounds p vec l u
+  | u <= l    = return l
+  | otherwise = iter (u-1) (u-1) (-1)
+ where
+ binSearch = binarySearchPBounds p vec
+ iter !i !j !_stepSize | i <= l = do
+   x <- unsafeRead vec l
+   if p x then return l else binSearch (l+1) j
+ iter !i !j !stepSize = do
+   x <- unsafeRead vec i
+   if p x then iter (i+stepSize) i (2*stepSize) else binSearch (i+1) j
+{-# INLINE gallopingSearchRightPBounds #-}
