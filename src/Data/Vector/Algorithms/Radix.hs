@@ -186,7 +186,7 @@ sort arr = sortBy (passes e) (size e) radix arr
  where
  e :: e
  e = undefined
-{-# INLINE sort #-}
+{-# INLINABLE sort #-}
 
 -- | Radix sorts an array using custom radix information
 -- requires the number of passes to fully sort the array,

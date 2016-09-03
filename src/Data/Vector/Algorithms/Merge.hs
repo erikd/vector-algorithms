@@ -35,7 +35,7 @@ import qualified Data.Vector.Algorithms.Insertion as I
 -- | Sorts an array using the default comparison.
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
-{-# INLINE sort #-}
+{-# INLINABLE sort #-}
 
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
