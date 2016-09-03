@@ -58,9 +58,11 @@ import qualified Data.Vector.Algorithms.Insertion as I
 -- to convey that index should return results in a similar way to indexing
 -- into a string.
 class Lexicographic e where
-  -- | Given a representative of a stripe and an index number, this
-  -- function should determine whether to stop sorting.
-  terminate :: e -> Int -> Bool
+  -- | Computes the length of a representative of a stripe. It should take 'n'
+  -- passes to sort values of extent 'n'. The extent may not be uniform across
+  -- all values of the type.
+  extent    :: e -> Int
+
   -- | The size of the bucket array necessary for sorting es
   size      :: Proxy e -> Int
   -- | Determines which bucket a given element should inhabit for a
@@ -68,16 +70,16 @@ class Lexicographic e where
   index     :: Int -> e -> Int
 
 instance Lexicographic Word8 where
-  terminate _ n = n > 0
-  {-# INLINE terminate #-}
+  extent _ = 1
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index _ n = fromIntegral n
   {-# INLINE index #-}
 
 instance Lexicographic Word16 where
-  terminate _ n = n > 1
-  {-# INLINE terminate #-}
+  extent _ = 2
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = fromIntegral $ (n `shiftR`  8) .&. 255
@@ -86,8 +88,8 @@ instance Lexicographic Word16 where
   {-# INLINE index #-}
 
 instance Lexicographic Word32 where
-  terminate _ n = n > 3
-  {-# INLINE terminate #-}
+  extent _ = 4
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = fromIntegral $ (n `shiftR` 24) .&. 255
@@ -98,8 +100,8 @@ instance Lexicographic Word32 where
   {-# INLINE index #-}
 
 instance Lexicographic Word64 where
-  terminate _ n = n > 7
-  {-# INLINE terminate #-}
+  extent _ = 8
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = fromIntegral $ (n `shiftR` 56) .&. 255
@@ -114,8 +116,8 @@ instance Lexicographic Word64 where
   {-# INLINE index #-}
 
 instance Lexicographic Word where
-  terminate _ n = n > 7
-  {-# INLINE terminate #-}
+  extent _ = 8
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = fromIntegral $ (n `shiftR` 56) .&. 255
@@ -130,16 +132,16 @@ instance Lexicographic Word where
   {-# INLINE index #-}
 
 instance Lexicographic Int8 where
-  terminate _ n = n > 0
-  {-# INLINE terminate #-}
+  extent _ = 1
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index _ n = 255 .&. fromIntegral n `xor` 128
   {-# INLINE index #-}
 
 instance Lexicographic Int16 where
-  terminate _ n = n > 1
-  {-# INLINE terminate #-}
+  extent _ = 2
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = fromIntegral $ ((n `xor` minBound) `shiftR` 8) .&. 255
@@ -148,8 +150,8 @@ instance Lexicographic Int16 where
   {-# INLINE index #-}
 
 instance Lexicographic Int32 where
-  terminate _ n = n > 3
-  {-# INLINE terminate #-}
+  extent _ = 4
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = fromIntegral $ ((n `xor` minBound) `shiftR` 24) .&. 255
@@ -160,8 +162,8 @@ instance Lexicographic Int32 where
   {-# INLINE index #-}
 
 instance Lexicographic Int64 where
-  terminate _ n = n > 7
-  {-# INLINE terminate #-}
+  extent _ = 8
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = fromIntegral $ ((n `xor` minBound) `shiftR` 56) .&. 255
@@ -176,8 +178,8 @@ instance Lexicographic Int64 where
   {-# INLINE index #-}
 
 instance Lexicographic Int where
-  terminate _ n = n > 7
-  {-# INLINE terminate #-}
+  extent _ = 8
+  {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
   index 0 n = ((n `xor` minBound) `shiftR` 56) .&. 255
@@ -192,14 +194,20 @@ instance Lexicographic Int where
   {-# INLINE index #-}
 
 instance Lexicographic B.ByteString where
-  terminate b i = i >= B.length b
-  {-# INLINE terminate #-}
+  extent = B.length
+  {-# INLINE extent #-}
   size _ = 257
   {-# INLINE size #-}
   index i b
     | i >= B.length b = 0
     | otherwise       = fromIntegral (B.index b i) + 1
   {-# INLINE index #-}
+
+-- | Given a representative of a stripe and an index number, this
+-- function determines whether to stop sorting.
+terminate :: Lexicographic e => e -> Int -> Bool
+terminate e i = i >= extent e
+{-# INLINE terminate #-}
 
 -- | Sorts an array using the default ordering. Both Lexicographic and
 -- Ord are necessary because the algorithm falls back to insertion sort
