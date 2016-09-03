@@ -53,6 +53,8 @@ import Data.Vector.Algorithms.Common
 
 import qualified Data.Vector.Algorithms.Insertion as I
 
+import Foreign.Storable
+
 -- | The methods of this class specify the information necessary to sort
 -- arrays using the default ordering. The name 'Lexicographic' is meant
 -- to convey that index should return results in a similar way to indexing
@@ -116,7 +118,7 @@ instance Lexicographic Word64 where
   {-# INLINE index #-}
 
 instance Lexicographic Word where
-  extent _ = 8
+  extent _ = sizeOf (0 :: Word)
   {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
@@ -178,7 +180,7 @@ instance Lexicographic Int64 where
   {-# INLINE index #-}
 
 instance Lexicographic Int where
-  extent _ = 8
+  extent _ = sizeOf (0 :: Int)
   {-# INLINE extent #-}
   size _ = 256
   {-# INLINE size #-}
