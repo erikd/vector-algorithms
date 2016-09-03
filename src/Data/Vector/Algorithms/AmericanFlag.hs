@@ -203,6 +203,28 @@ instance Lexicographic B.ByteString where
     | otherwise       = fromIntegral (B.index b i) + 1
   {-# INLINE index #-}
 
+instance (Lexicographic a, Lexicographic b) => Lexicographic (a, b) where
+  extent (a,b) = extent a + extent b
+  {-# INLINE extent #-}
+  size _ = size (Proxy :: Proxy a) `max` size (Proxy :: Proxy b)
+  {-# INLINE size #-}
+  index i (a,b)
+    | i >= extent a = index i b
+    | otherwise     = index i a
+  {-# INLINE index #-}
+
+instance (Lexicographic a, Lexicographic b) => Lexicographic (Either a b) where
+  extent (Left  a) = 1 + extent a
+  extent (Right b) = 1 + extent b
+  {-# INLINE extent #-}
+  size _ = size (Proxy :: Proxy a) `max` size (Proxy :: Proxy b)
+  {-# INLINE size #-}
+  index 0 (Left  _) = 0
+  index 0 (Right _) = 1
+  index n (Left  a) = index (n-1) a
+  index n (Right b) = index (n-1) b
+  {-# INLINE index #-}
+
 -- | Given a representative of a stripe and an index number, this
 -- function determines whether to stop sorting.
 terminate :: Lexicographic e => e -> Int -> Bool
