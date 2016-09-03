@@ -36,6 +36,8 @@ import Prelude hiding (read, length)
 import Control.Monad
 import Control.Monad.Primitive
 
+import Data.Proxy
+
 import Data.Word
 import Data.Int
 import Data.Bits
@@ -60,7 +62,7 @@ class Lexicographic e where
   -- function should determine whether to stop sorting.
   terminate :: e -> Int -> Bool
   -- | The size of the bucket array necessary for sorting es
-  size      :: e -> Int
+  size      :: Proxy e -> Int
   -- | Determines which bucket a given element should inhabit for a
   -- particular iteration.
   index     :: Int -> e -> Int
@@ -204,9 +206,9 @@ instance Lexicographic B.ByteString where
 -- for sufficiently small arrays.
 sort :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
      => v (PrimState m) e -> m ()
-sort v = sortBy compare terminate (size e) index v
- where e :: e
-       e = undefined
+sort v = sortBy compare terminate (size p) index v
+ where p :: Proxy e
+       p = Proxy
 {-# INLINABLE sort #-}
 
 -- | A fully parameterized version of the sorting algorithm. Again, this
