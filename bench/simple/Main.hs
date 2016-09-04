@@ -195,7 +195,7 @@ main = getArgs >>= \args -> withSystemRandom $ \gen ->
       Left err   -> putStrLn $ usageInfo err options
       Right opts | not (usage opts) ->
         mapM_ (runTest gen (elems opts) (portion opts)) (algos opts)
-                 | otherwise -> putStrLn $ usageInfo "uvector-algorithms-bench" options
+                 | otherwise -> putStrLn $ usageInfo "vector-algorithms-bench" options
     (_, _, errs) -> putStrLn $ usageInfo (concat errs) options
 
 

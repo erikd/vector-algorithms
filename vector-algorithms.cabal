@@ -95,8 +95,8 @@ library
   if flag(InternalChecks)
     cpp-options: -DVECTOR_INTERNAL_CHECKS
 
-executable vector-algorithms-bench
-  hs-source-dirs: bench
+executable simple-bench
+  hs-source-dirs: bench/simple
 
   if !flag(bench)
     buildable: False
