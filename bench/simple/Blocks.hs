@@ -42,8 +42,8 @@ medianKiller m n'
 {-# INLINE medianKiller #-}
 
 initialize :: (Unbox e) => MVector RealWorld e -> Int -> (Int -> IO e) -> IO ()
-initialize arr len fill = init $ len - 1
- where init n = fill n >>= unsafeWrite arr n >> when (n > 0) (init $ n - 1)
+initialize arr len fill = initial $ len - 1
+ where initial n = fill n >>= unsafeWrite arr n >> when (n > 0) (initial $ n - 1)
 {-# INLINE initialize #-}
 
 speedTest :: (Unbox e) => Int

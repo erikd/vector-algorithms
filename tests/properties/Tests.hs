@@ -117,15 +117,8 @@ check_optimal = do qc . label "size 2" $ prop_optimal 2 O.sort2ByOffset
 
 check_permutation = do
   qc $ label "introsort"    . prop_permutation (INT.sort :: Algo Int ())
-  qc $ label "intropartial" . prop_sized (const . prop_permutation)
-                                         (INT.partialSort :: SizeAlgo Int ())
-  qc $ label "introselect"  . prop_sized (const . prop_permutation)
-                                         (INT.select :: SizeAlgo Int ())
   qc $ label "heapsort"     . prop_permutation (H.sort :: Algo Int ())
-  qc $ label "heappartial"  . prop_sized (const . prop_permutation)
-                                         (H.partialSort :: SizeAlgo Int ())
-  qc $ label "heapselect"   . prop_sized (const . prop_permutation)
-                                         (H.select :: SizeAlgo Int ())
+
   qc $ label "mergesort"    . prop_permutation (M.sort :: Algo Int    ())
   qc $ label "timsort"      . prop_permutation (T.sort :: Algo Int    ())
   qc $ label "radix I8"     . prop_permutation (R.sort :: Algo Int8   ())
@@ -149,6 +142,17 @@ check_permutation = do
   qc $ label "flag W64"     . prop_permutation (AF.sort :: Algo Word64 ())
   qc $ label "flag Word"    . prop_permutation (AF.sort :: Algo Word   ())
   qc $ label "flag ByteString" . prop_permutation (AF.sort :: Algo B.ByteString ())
+{-
+  qc $ label "intropartial" . prop_sized (const . prop_permutation)
+                                         (INT.partialSort :: SizeAlgo Int ())
+  qc $ label "introselect"  . prop_sized (const . prop_permutation)
+                                         (INT.select :: SizeAlgo Int ())
+  qc $ label "heappartial"  . prop_sized (const . prop_permutation)
+                                         (H.partialSort :: SizeAlgo Int ())
+  qc $ label "heapselect"   . prop_sized (const . prop_permutation)
+                                         (H.select :: Algo Int ())
+-}
+
  where
  qc prop = quickCheckWith args prop
 
