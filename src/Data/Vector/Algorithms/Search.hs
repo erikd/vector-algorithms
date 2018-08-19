@@ -39,7 +39,7 @@ import Data.Bits
 
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison)
+import Data.Vector.Algorithms.Common (Comparison, midPoint)
 
 -- | Finds an index in a given sorted vector at which the given element could
 -- be inserted while maintaining the sortedness of the vector.
@@ -70,7 +70,7 @@ binarySearchByBounds cmp vec e = loop
                       LT -> loop (k+1) u
                       EQ -> return k
                       GT -> loop l     k
-  where k = (u + l) `shiftR` 1
+  where k = midPoint u l
 {-# INLINE binarySearchByBounds #-}
 
 -- | Finds the lowest index in a given sorted vector at which the given element
@@ -136,7 +136,7 @@ binarySearchPBounds p vec = loop
  loop !l !u
    | u <= l    = return l
    | otherwise = unsafeRead vec k >>= \e -> if p e then loop l k else loop (k+1) u
-  where k = (u + l) `shiftR` 1
+  where k = midPoint u l
 {-# INLINE binarySearchPBounds #-}
 
 -- | Given a predicate that is guaranteed to be monotone on the vector elements

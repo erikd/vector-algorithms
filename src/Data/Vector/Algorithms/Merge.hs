@@ -27,7 +27,7 @@ import Control.Monad.Primitive
 import Data.Bits
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison, copyOffset)
+import Data.Vector.Algorithms.Common (Comparison, copyOffset, midPoint)
 
 import qualified Data.Vector.Algorithms.Optimal   as O
 import qualified Data.Vector.Algorithms.Insertion as I
@@ -60,7 +60,7 @@ mergeSortWithBuf cmp src buf = loop 0 (length src)
                           loop mid u
                           merge cmp (unsafeSlice l len src) buf (mid - l)
   where len = u - l
-        mid = (u + l) `shiftR` 1
+        mid = midPoint u l
 {-# INLINE mergeSortWithBuf #-}
 
 merge :: (PrimMonad m, MVector v e)

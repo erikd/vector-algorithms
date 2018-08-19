@@ -56,7 +56,7 @@ import Control.Monad.Primitive
 import Data.Bits
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison)
+import Data.Vector.Algorithms.Common (Comparison, midPoint)
 
 import qualified Data.Vector.Algorithms.Insertion as I
 import qualified Data.Vector.Algorithms.Optimal   as O
@@ -106,7 +106,7 @@ introsort cmp a i l u = sort i l u >> I.sortByBounds cmp a l u
                     sort (d-1) l   (mid - 1)
   where
   len = u - l
-  c   = (u + l) `div` 2
+  c   = midPoint u l
 {-# INLINE introsort #-}
 
 -- | Moves the least k elements to the front of the array in
@@ -155,7 +155,7 @@ selectByBounds cmp a k l u
                    else if m < mid - 1
                         then go (n-1) l m (mid - 1)
                         else return ()
-  where c = (u + l) `div` 2
+  where c = midPoint u l
 {-# INLINE selectByBounds #-}
 
 -- | Moves the least k elements to the front of the array, sorted.
@@ -207,7 +207,7 @@ partialSortByBounds cmp a k l u
                                go (n-1) mid m u
                       EQ -> isort (n-1) l m
                       LT -> go n l m (mid - 1)
-  where c = (u + l) `div` 2
+  where c = midPoint u l
 {-# INLINE partialSortByBounds #-}
 
 partitionBy :: forall m v e. (PrimMonad m, MVector v e)

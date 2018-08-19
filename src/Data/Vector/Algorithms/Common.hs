@@ -46,3 +46,13 @@ countLoop rdx src count = set count 0 >> go 0
    | otherwise  = return ()
 {-# INLINE countLoop #-}
 
+midPoint :: Int -> Int -> Int
+midPoint a b =
+  toInt $ (toWord a + toWord b) `div` 2
+  where
+    toWord :: Int -> Word
+    toWord = fromIntegral
+
+    toInt :: Word -> Int
+    toInt = fromIntegral
+{-# INLINE midPoint #-}
