@@ -38,9 +38,9 @@ flag properties
   description: Enable the quickcheck tests
   default: True
 
-flag dump-simpl
-  description: Dumps the simplified core during compilation
-  default: False
+-- flag dump-simpl
+--   description: Dumps the simplified core during compilation
+--   default: False
 
 flag llvm
   description: Build using llvm
@@ -75,8 +75,9 @@ library
   ghc-options:
     -funbox-strict-fields
 
-  if flag(dump-simpl)
-    ghc-options: -ddump-simpl -ddump-to-file
+  -- Cabal/Hackage complains about these
+  -- if flag(dump-simpl)
+  --   ghc-options: -ddump-simpl -ddump-to-file
 
   if flag(llvm)
     ghc-options: -fllvm
@@ -110,8 +111,9 @@ executable simple-bench
   build-depends: base, mwc-random, vector, vector-algorithms, mtl
   ghc-options: -Wall
 
-  if flag(dump-simpl)
-    ghc-options: -ddump-simpl -ddump-to-file
+  -- Cabal/Hackage complains about these
+  -- if flag(dump-simpl)
+  --   ghc-options: -ddump-simpl -ddump-to-file
 
   if flag(llvm)
     ghc-options: -fllvm
