@@ -1,4 +1,4 @@
-{-# LANGUAGE ImpredicativeTypes, RankNTypes, TypeOperators, FlexibleContexts #-}
+{-# LANGUAGE RankNTypes, TypeOperators, FlexibleContexts #-}
 
 module Main (main) where
 
@@ -37,36 +37,40 @@ type Algo      e r = forall s mv. MVector mv e => mv s e -> ST s r
 type SizeAlgo  e r = forall s mv. MVector mv e => mv s e -> Int -> ST s r
 type BoundAlgo e r = forall s mv. MVector mv e => mv s e -> Int -> Int -> ST s r
 
+newtype WrappedAlgo      e r = WrapAlgo      { unWrapAlgo      :: Algo      e r }
+newtype WrappedSizeAlgo  e r = WrapSizeAlgo  { unWrapSizeAlgo  :: SizeAlgo  e r }
+newtype WrappedBoundAlgo e r = WrapBoundAlgo { unWrapBoundAlgo :: BoundAlgo e r }
+
 args = stdArgs
        { maxSuccess = 1000
        , maxDiscardRatio = 2
        }
 
 check_Int_sort = forM_ algos $ \(name,algo) ->
-  quickCheckWith args (label name . prop_fullsort algo)
+  quickCheckWith args (label name . prop_fullsort (unWrapAlgo algo))
  where
- algos :: [(String, Algo Int ())]
- algos = [ ("introsort", INT.sort)
-         , ("insertion sort", INS.sort)
-         , ("merge sort", M.sort)
-         , ("heapsort", H.sort)
-         , ("timsort", T.sort)
+ algos :: [(String, WrappedAlgo Int ())]
+ algos = [ ("introsort", WrapAlgo INT.sort)
+         , ("insertion sort", WrapAlgo INS.sort)
+         , ("merge sort", WrapAlgo M.sort)
+         , ("heapsort", WrapAlgo H.sort)
+         , ("timsort", WrapAlgo T.sort)
          ]
 
 check_Int_partialsort = forM_ algos $ \(name,algo) ->
-  quickCheckWith args (label name . prop_partialsort algo)
+  quickCheckWith args (label name . prop_partialsort (unWrapSizeAlgo algo))
  where
- algos :: [(String, SizeAlgo Int ())]
- algos = [ ("intro-partialsort", INT.partialSort)
-         , ("heap partialsort", H.partialSort)
+ algos :: [(String, WrappedSizeAlgo Int ())]
+ algos = [ ("intro-partialsort", WrapSizeAlgo INT.partialSort)
+         , ("heap partialsort", WrapSizeAlgo H.partialSort)
          ]
 
 check_Int_select = forM_ algos $ \(name,algo) ->
-  quickCheckWith args (label name . prop_select algo)
+  quickCheckWith args (label name . prop_select (unWrapSizeAlgo algo))
  where
- algos :: [(String, SizeAlgo Int ())]
- algos = [ ("intro-select", INT.select)
-         , ("heap select", H.select)
+ algos :: [(String, WrappedSizeAlgo Int ())]
+ algos = [ ("intro-select", WrapSizeAlgo INT.select)
+         , ("heap select", WrapSizeAlgo H.select)
          ]
 
 check_radix_sorts = do
@@ -142,16 +146,14 @@ check_permutation = do
   qc $ label "flag W64"     . prop_permutation (AF.sort :: Algo Word64 ())
   qc $ label "flag Word"    . prop_permutation (AF.sort :: Algo Word   ())
   qc $ label "flag ByteString" . prop_permutation (AF.sort :: Algo B.ByteString ())
-{-
-  qc $ label "intropartial" . prop_sized (const . prop_permutation)
+  qc $ label "intropartial" . prop_sized (\x -> const (prop_permutation x))
                                          (INT.partialSort :: SizeAlgo Int ())
-  qc $ label "introselect"  . prop_sized (const . prop_permutation)
+  qc $ label "introselect"  . prop_sized (\x -> const (prop_permutation x))
                                          (INT.select :: SizeAlgo Int ())
-  qc $ label "heappartial"  . prop_sized (const . prop_permutation)
+  qc $ label "heappartial"  . prop_sized (\x -> const (prop_permutation x))
                                          (H.partialSort :: SizeAlgo Int ())
-  qc $ label "heapselect"   . prop_sized (const . prop_permutation)
-                                         (H.select :: Algo Int ())
--}
+  qc $ label "heapselect"   . prop_sized (\x -> const (prop_permutation x))
+                                         (H.select :: SizeAlgo Int ())
 
  where
  qc prop = quickCheckWith args prop
