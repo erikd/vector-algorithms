@@ -18,10 +18,10 @@ before_install:
 
 install:
  - cabal-1.24 update
- - cabal-1.24 install --only-dependencies --enable-tests
+ - cabal-1.24 install --only-dependencies --enable-tests --enable-benchmarks
 
 script:
- - cabal-1.24 configure --enable-tests
+ - cabal-1.24 configure --enable-tests --enable-benchmarks
  - cabal-1.24 build
  - cabal-1.24 test --show-details=streaming
  - cabal-1.24 haddock

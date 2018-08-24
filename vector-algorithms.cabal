@@ -32,7 +32,7 @@ flag InternalChecks
 flag bench
   description: Build a benchmarking program to test vector-algorithms
                performance
-  default: False
+  default: True
 
 flag properties
   description: Enable the quickcheck tests
@@ -100,8 +100,9 @@ library
   if flag(InternalChecks)
     cpp-options: -DVECTOR_INTERNAL_CHECKS
 
-executable simple-bench
+benchmark simple-bench
   hs-source-dirs: bench/simple
+  type: exitcode-stdio-1.0
 
   if !flag(bench)
     buildable: False
@@ -111,7 +112,7 @@ executable simple-bench
   other-modules:
     Blocks
 
-  build-depends: base, mwc-random, vector, vector-algorithms, mtl
+  build-depends: base, mwc-random, vector, vector-algorithms
   ghc-options: -Wall
 
   -- Cabal/Hackage complains about these
