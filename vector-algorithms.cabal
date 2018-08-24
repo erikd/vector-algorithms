@@ -58,6 +58,9 @@ library
                  primitive >=0.3 && <0.7,
                  bytestring >= 0.9 && < 1.0
 
+  if ! impl (ghc >= 7.8)
+    build-depends: tagged >= 0.4 && < 0.9
+
   exposed-modules:
     Data.Vector.Algorithms.Optimal
     Data.Vector.Algorithms.Insertion
