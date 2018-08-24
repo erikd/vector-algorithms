@@ -18,6 +18,7 @@ import Prelude hiding (read, length)
 import Control.Monad.Primitive
 
 import Data.Vector.Generic.Mutable
+import Data.Word (Word)
 
 import qualified Data.Vector.Primitive.Mutable as PV
 
