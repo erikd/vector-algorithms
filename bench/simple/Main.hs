@@ -5,8 +5,8 @@ module Main (main) where
 import Prelude hiding (read, length)
 import qualified Prelude as P
 
+import Control.Monad
 import Control.Monad.ST
-import Control.Monad.Error
 
 import Data.Char
 import Data.Ord  (comparing)
@@ -40,7 +40,7 @@ alloc arr | len <= 4  = arr `seq` return ()
 
 displayTime :: String -> Integer -> IO ()
 displayTime s elapsed = putStrLn $
-    s ++ " : " ++ show (fromIntegral elapsed / 1e12) ++ " seconds"
+    s ++ " : " ++ show (fromIntegral elapsed / (1e12 :: Double)) ++ " seconds"
 
 run :: String -> IO Integer -> IO ()
 run s t = t >>= displayTime s
@@ -142,7 +142,6 @@ runTest g n k alg = case alg of
   RadixSort          -> sortSuite        "radix sort"            g n   radixSort
   AmericanFlagSort   -> sortSuite        "flag sort"             g n   flagSort
   TimSort            -> sortSuite        "tim sort"              g n   timSort
-  _                  -> putStrLn $ "Currently unsupported algorithm: " ++ show alg
 
 mergeSort :: MVector RealWorld Int -> IO ()
 mergeSort v = M.sort v
