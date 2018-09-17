@@ -46,12 +46,12 @@ initialize arr len fill = initial $ len - 1
  where initial n = fill n >>= unsafeWrite arr n >> when (n > 0) (initial $ n - 1)
 {-# INLINE initialize #-}
 
-speedTest :: (Unbox e) => Int
+speedTest :: (Unbox e) => MVector RealWorld e
+                       -> Int
                        -> (Int -> IO e)
                        -> (MVector RealWorld e -> IO ())
                        -> IO Integer
-speedTest n fill algo = do
-  arr <- new n
+speedTest arr n fill algo = do
   initialize arr n fill
   t0 <- clock
   algo arr
