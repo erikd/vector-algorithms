@@ -47,13 +47,14 @@ run s t = t >>= displayTime s
 
 sortSuite :: String -> GenIO -> Int -> (MVector RealWorld Int -> IO ()) -> IO ()
 sortSuite str g n sort = do
+  arr <- new n
   putStrLn $ "Testing: " ++ str
-  run "Random            " $ speedTest n (rand g >=> modulo n) sort
-  run "Sorted            " $ speedTest n ascend sort
-  run "Reverse-sorted    " $ speedTest n (descend n) sort
-  run "Random duplicates " $ speedTest n (rand g >=> modulo 1000) sort
+  run "Random            " $ speedTest arr n (rand g >=> modulo n) sort
+  run "Sorted            " $ speedTest arr n ascend sort
+  run "Reverse-sorted    " $ speedTest arr n (descend n) sort
+  run "Random duplicates " $ speedTest arr n (rand g >=> modulo 1000) sort
   let m = 4 * (n `div` 4)
-  run "Median killer     " $ speedTest m (medianKiller m) sort
+  run "Median killer     " $ speedTest arr m (medianKiller m) sort
 
 partialSortSuite :: String -> GenIO -> Int -> Int
                  -> (MVector RealWorld Int -> Int -> IO ()) -> IO ()
