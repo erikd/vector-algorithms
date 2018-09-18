@@ -39,15 +39,22 @@ sort = sortBy compare
 
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
-sortBy cmp vec
-  | len <= 1  = return ()
-  | len == 2  = O.sort2ByOffset cmp vec 0
-  | len == 3  = O.sort3ByOffset cmp vec 0
-  | len == 4  = O.sort4ByOffset cmp vec 0
-  | otherwise = do buf <- new len
-                   mergeSortWithBuf cmp vec buf
+sortBy cmp vec = if len <= 4
+                    then if len <= 2
+                            then if len /= 2
+                                    then return ()
+                                    else O.sort2ByOffset cmp vec 0
+                            else if len == 3
+                                    then O.sort3ByOffset cmp vec 0
+                                    else O.sort4ByOffset cmp vec 0
+                    else if len < threshold
+                            then I.sortByBounds cmp vec 0 len
+                            else do buf <- new halfLen
+                                    mergeSortWithBuf cmp vec buf
  where
- len = length vec
+ len     = length vec
+ -- odd lengths have a larger half that needs to fit, so use ceiling, not floor
+ halfLen = (len + 1) `div` 2
 {-# INLINE sortBy #-}
 
 mergeSortWithBuf :: (PrimMonad m, MVector v e)
