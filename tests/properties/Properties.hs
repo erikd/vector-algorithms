@@ -27,7 +27,7 @@ import Data.Vector.Algorithms.Radix (radix, passes, size)
 
 import qualified Data.Map as M
 
-import Test.QuickCheck
+import Test.QuickCheck hiding (Sorted)
 
 import Util
 
@@ -104,7 +104,7 @@ stable arr | V.null arr = property True
                           in V.all (\(e', i') -> e < e' || i < i') (V.tail arr)
                             .&. stable (V.tail arr)
 
-prop_stable_radix :: (forall e s mv. G.MVector mv e => Int -> Int -> (Int -> e -> Int) 
+prop_stable_radix :: (forall e s mv. G.MVector mv e => Int -> Int -> (Int -> e -> Int)
                         -> mv s e -> ST s ())
                   -> Vector Int -> Property
 prop_stable_radix algo arr =
@@ -113,7 +113,7 @@ prop_stable_radix algo arr =
  where
  ix = V.fromList [1 .. V.length arr]
  e = V.head arr
- 
+
 prop_optimal :: Int
              -> (forall e s mv. G.MVector mv e => Comparison e -> mv s e -> Int -> ST s ())
              -> Property
@@ -137,7 +137,7 @@ toBag = M.fromListWith (+) . flip zip (repeat 1) . V.toList
 
 prop_permutation :: (Ord e) => (forall s mv. G.MVector mv e => mv s e -> ST s ())
                  -> Vector e -> Property
-prop_permutation algo arr = property $ 
+prop_permutation algo arr = property $
                             toBag arr == toBag (modify algo arr)
 
 newtype SortedVec e = Sorted (Vector e)
