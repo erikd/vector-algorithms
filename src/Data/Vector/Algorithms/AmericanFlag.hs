@@ -28,6 +28,7 @@
 
 module Data.Vector.Algorithms.AmericanFlag ( sort
                                            , sortBy
+                                           , terminate
                                            , Lexicographic(..)
                                            ) where
 
