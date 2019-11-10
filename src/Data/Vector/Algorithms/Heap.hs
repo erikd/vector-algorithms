@@ -265,8 +265,8 @@ heapInsert cmp v l u e = sift (u - l)
  where
  sift k
    | k <= 0    = unsafeWrite v l e
-   | otherwise = let pi = l + shiftR (k-1) 2
-                  in unsafeRead v pi >>= \p -> case cmp p e of
+   | otherwise = let pi = shiftR (k-1) 2
+                  in unsafeRead v (l + pi) >>= \p -> case cmp p e of
                        LT -> unsafeWrite v (l + k) p >> sift pi
                        _  -> unsafeWrite v (l + k) e
 {-# INLINE heapInsert #-}
