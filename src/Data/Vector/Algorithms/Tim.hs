@@ -241,34 +241,41 @@ mergeLo cmp vec l m u tempBuf' = do
  gt  a b = cmp a b == GT
  gte a b = cmp a b /= LT
  tmpBufLen = m - l
- iter _ i _ _ _ _ _ _ | i >= tmpBufLen = return ()
- iter tmpBuf i j k _ _ _ _ | j >= u = do
+
+ finalize tmpBuf i k = do
    let from = unsafeSlice i (tmpBufLen-i) tmpBuf
        to   = unsafeSlice k (tmpBufLen-i) vec
    unsafeCopy to from
+
+ iter _ i _ _ _ _ _ _ | i >= tmpBufLen = return ()
+ iter tmpBuf i j k _ _ _ _ | j >= u = finalize tmpBuf i k
  iter tmpBuf i j k _ vj 0 _ = do
    i' <- gallopingSearchLeftPBounds (`gt` vj) tmpBuf i tmpBufLen
    let gallopLen = i' - i
        from = unsafeSlice i gallopLen tmpBuf
        to   = unsafeSlice k gallopLen vec
    unsafeCopy to from
-   vi' <- unsafeRead tmpBuf i'
-   iter tmpBuf i' j (k+gallopLen) vi' vj minGallop minGallop
+   when (i' < tmpBufLen) $ do
+     vi' <- unsafeRead tmpBuf i'
+     iter tmpBuf i' j (k+gallopLen) vi' vj minGallop minGallop
  iter tmpBuf i j k vi _ _ 0 = do
    j' <- gallopingSearchLeftPBounds (`gte` vi) vec j u
    let gallopLen = j' - j
        from = slice j gallopLen vec
        to   = slice k gallopLen vec
    unsafeMove to from
-   vj' <- unsafeRead vec j'
-   iter tmpBuf i j' (k+gallopLen) vi vj' minGallop minGallop
+   if j' >= u then finalize tmpBuf i (k + gallopLen) else do
+     vj' <- unsafeRead vec j'
+     iter tmpBuf i j' (k+gallopLen) vi vj' minGallop minGallop
  iter tmpBuf i j k vi vj ga gb
    | vj `gte` vi = do unsafeWrite vec k vi
-                      vi' <- unsafeRead tmpBuf (i+1)
-                      iter tmpBuf (i+1) j (k+1) vi' vj (ga-1) minGallop
+                      when (i + 1 < tmpBufLen) $ do
+                        vi' <- unsafeRead tmpBuf (i+1)
+                        iter tmpBuf (i+1) j (k+1) vi' vj (ga-1) minGallop
    | otherwise   = do unsafeWrite vec k vj
-                      vj' <- unsafeRead vec (j+1)
-                      iter tmpBuf i (j+1) (k+1) vi vj' minGallop (gb-1)
+                      if j + 1 >= u then finalize tmpBuf i (k + 1) else do
+                        vj' <- unsafeRead vec (j+1)
+                        iter tmpBuf i (j+1) (k+1) vi vj' minGallop (gb-1)
 {-# INLINE mergeLo #-}
 
 -- | Merge the adjacent sorted slices [l,m) and [m,u) in vec. This is done by
@@ -292,34 +299,41 @@ mergeHi cmp vec l m u tmpBuf' = do
  gt  a b = cmp a b == GT
  gte a b = cmp a b /= LT
  tmpBufLen = u - m
- iter _ _ j _ _ _ _ _ | j < 0 = return ()
- iter tmpBuf i j _ _ _ _ _ | i < l = do
+
+ finalize tmpBuf j = do
    let from = unsafeSlice 0 (j+1) tmpBuf
        to   = unsafeSlice l (j+1) vec
    unsafeCopy to from
+
+ iter _ _ j _ _ _ _ _ | j < 0 = return ()
+ iter tmpBuf i j _ _ _ _ _ | i < l = finalize tmpBuf j
  iter tmpBuf i j k _ vj 0 _ = do
    i' <- gallopingSearchRightPBounds (`gt` vj) vec l i
    let gallopLen = i - i'
        from = slice (i'+1) gallopLen vec
        to   = slice (k-gallopLen+1) gallopLen vec
    unsafeMove to from
-   vi' <- unsafeRead vec i'
-   iter tmpBuf i' j (k-gallopLen) vi' vj minGallop minGallop
+   if i' < l then finalize tmpBuf j else do
+     vi' <- unsafeRead vec i'
+     iter tmpBuf i' j (k-gallopLen) vi' vj minGallop minGallop
  iter tmpBuf i j k vi _ _ 0 = do
    j' <- gallopingSearchRightPBounds (`gte` vi) tmpBuf 0 j
    let gallopLen = j - j'
        from = slice (j'+1) gallopLen tmpBuf
        to   = slice (k-gallopLen+1) gallopLen vec
    unsafeCopy to from
-   vj' <- unsafeRead tmpBuf j'
-   iter tmpBuf i j' (k-gallopLen) vi vj' minGallop minGallop
+   when (j' >= 0) $ do
+     vj' <- unsafeRead tmpBuf j'
+     iter tmpBuf i j' (k-gallopLen) vi vj' minGallop minGallop
  iter tmpBuf i j k vi vj ga gb
    | vi `gt` vj = do unsafeWrite vec k vi
-                     vi' <- unsafeRead vec (i-1)
-                     iter tmpBuf (i-1) j (k-1) vi' vj (ga-1) minGallop
+                     if i - 1 < l then finalize tmpBuf j else do
+                       vi' <- unsafeRead vec (i-1)
+                       iter tmpBuf (i-1) j (k-1) vi' vj (ga-1) minGallop
    | otherwise  = do unsafeWrite vec k vj
-                     vj' <- unsafeRead tmpBuf (j-1)
-                     iter tmpBuf i (j-1) (k-1) vi vj' minGallop (gb-1)
+                     when (j - 1 >= 0) $ do
+                       vj' <- unsafeRead tmpBuf (j-1)
+                       iter tmpBuf i (j-1) (k-1) vi vj' minGallop (gb-1)
 {-# INLINE mergeHi #-}
 
 -- | Merge the adjacent sorted slices A=[l,m) and B=[m,u) in vec. This begins
