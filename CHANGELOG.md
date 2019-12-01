@@ -1,3 +1,7 @@
+## Version 0.8.0.3 (2019-12-02)
+
+- Fix out-of-bounds access in Timsort.
+
 ## Version 0.8.0.2 (2019-11-28)
 
 - Bump upper bounds on primitive and QuickCheck.
