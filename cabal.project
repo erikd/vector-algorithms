@@ -1,0 +1,8 @@
+packages:
+  ./
+
+-- Build all tests by default
+tests: True
+
+-- Show full test output
+test-show-details: direct
