@@ -190,7 +190,10 @@ partialSortByBounds
   -> m ()
 partialSortByBounds cmp a k l u
   | l >= u    = return ()
-  | otherwise = go (ilg len) l (l + k) u
+  | otherwise = let k' = min (u-l) k
+                      -- N.B. Clamp k to the length of the range
+                      -- being sorted.
+                in go (ilg len) l (l + k') u
  where
  isort = introsort cmp a
  {-# INLINE [1] isort #-}
