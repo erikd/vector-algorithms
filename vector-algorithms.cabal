@@ -141,7 +141,7 @@ test-suite properties
       base,
       bytestring,
       containers,
-      QuickCheck > 2.9 && < 2.14,
+      QuickCheck > 2.9 && < 2.15,
       vector,
       vector-algorithms
 
