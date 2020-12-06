@@ -1,3 +1,8 @@
+## Version 0.8.0.4 (2020-12-06)
+
+- Fix out of range access in Intro.partialSort.
+- Update QuickCheck dependency bounds.
+
 ## Version 0.8.0.3 (2019-12-02)
 
 - Fix out-of-bounds access in Timsort.
