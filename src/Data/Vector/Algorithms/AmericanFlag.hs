@@ -27,7 +27,9 @@
 -- rather than running for a set number of iterations.
 
 module Data.Vector.Algorithms.AmericanFlag ( sort
+                                           , sortUniq
                                            , sortBy
+                                           , sortUniqBy
                                            , terminate
                                            , Lexicographic(..)
                                            ) where
@@ -244,6 +246,14 @@ sort v = sortBy compare terminate (size p) index v
        p = Proxy
 {-# INLINABLE sort #-}
 
+-- | A variant on `sort` that returns a vector of unique elements.
+sortUniq :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
+     => v (PrimState m) e -> m (v (PrimState m) e)
+sortUniq v = sortUniqBy compare terminate (size p) index v
+ where p :: Proxy e
+       p = Proxy
+{-# INLINABLE sortUniq #-}
+
 -- | A fully parameterized version of the sorting algorithm. Again, this
 -- function takes both radix information and a comparison, because the
 -- algorithms falls back to insertion sort for small arrays.
@@ -261,6 +271,23 @@ sortBy cmp stop buckets radix v
                        countLoop (radix 0) v count
                        flagLoop cmp stop radix count pile v
 {-# INLINE sortBy #-}
+
+-- | A variant on `sortBy` which returns a vector of unique elements.
+sortUniqBy :: (PrimMonad m, MVector v e)
+       => Comparison e       -- ^ a comparison for the insertion sort flalback
+       -> (e -> Int -> Bool) -- ^ determines whether a stripe is complete
+       -> Int                -- ^ the number of buckets necessary
+       -> (Int -> e -> Int)  -- ^ the big-endian radix function
+       -> v (PrimState m) e  -- ^ the array to be sorted
+       -> m (v (PrimState m) e)
+sortUniqBy cmp stop buckets radix v
+  | length v == 0 = return v
+  | otherwise     = do count <- new buckets
+                       pile <- new buckets
+                       countLoop (radix 0) v count
+                       flagLoop cmp stop radix count pile v
+                       uniqueMutableBy cmp v
+{-# INLINE sortUniqBy #-}
 
 flagLoop :: (PrimMonad m, MVector v e)
          => Comparison e

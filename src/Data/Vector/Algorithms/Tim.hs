@@ -91,7 +91,9 @@
 
 module Data.Vector.Algorithms.Tim
        ( sort
+       , sortUniq
        , sortBy
+       , sortUniqBy
        ) where
 
 import Prelude hiding (length, reverse)
@@ -106,11 +108,17 @@ import Data.Vector.Algorithms.Search ( gallopingSearchRightPBounds
                                      , gallopingSearchLeftPBounds
                                      )
 import Data.Vector.Algorithms.Insertion (sortByBounds', Comparison)
+import Data.Vector.Algorithms.Common (uniqueMutableBy)
 
 -- | Sorts an array using the default comparison.
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
 {-# INLINABLE sort #-}
+
+-- | A variant on `sort` that returns a vector of unique elements.
+sortUniq :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m (v (PrimState m) e)
+sortUniq = sortUniqBy compare
+{-# INLINABLE sortUniq #-}
 
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e)
@@ -145,6 +153,14 @@ sortBy cmp vec
    merge cmp vec a b len tmpBuf >>= performRemainingMerges (a:ss)
  performRemainingMerges _ _ = return ()
 {-# INLINE sortBy #-}
+
+-- | A variant on `sortBy` which returns a vector of unique elements.
+sortUniqBy :: (PrimMonad m, MVector v e)
+       => Comparison e -> v (PrimState m) e -> m (v (PrimState m) e)
+sortUniqBy cmp vec = do
+  sortBy cmp vec
+  uniqueMutableBy cmp vec
+{-# INLINE sortUniqBy #-}
 
 -- | Computes the minimum run size for the sort. The goal is to choose a size
 -- such that there are almost if not exactly 2^n chunks of that size in the

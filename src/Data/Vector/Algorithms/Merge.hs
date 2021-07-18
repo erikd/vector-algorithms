@@ -16,7 +16,9 @@
 
 module Data.Vector.Algorithms.Merge
        ( sort
+       , sortUniq
        , sortBy
+       , sortUniqBy
        , Comparison
        ) where
 
@@ -27,7 +29,7 @@ import Control.Monad.Primitive
 import Data.Bits
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison, copyOffset, midPoint)
+import Data.Vector.Algorithms.Common (Comparison, copyOffset, midPoint, uniqueMutableBy)
 
 import qualified Data.Vector.Algorithms.Optimal   as O
 import qualified Data.Vector.Algorithms.Insertion as I
@@ -36,6 +38,11 @@ import qualified Data.Vector.Algorithms.Insertion as I
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
 {-# INLINABLE sort #-}
+
+-- | A variant on `sort` that returns a vector of unique elements.
+sortUniq :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m (v (PrimState m) e)
+sortUniq = sortUniqBy compare
+{-# INLINABLE sortUniq #-}
 
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
@@ -56,6 +63,13 @@ sortBy cmp vec = if len <= 4
  -- odd lengths have a larger half that needs to fit, so use ceiling, not floor
  halfLen = (len + 1) `div` 2
 {-# INLINE sortBy #-}
+
+-- | A variant on `sortBy` which returns a vector of unique elements.
+sortUniqBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m (v (PrimState m) e)
+sortUniqBy cmp vec = do
+  sortBy cmp vec
+  uniqueMutableBy cmp vec
+{-# INLINE sortUniqBy #-}
 
 mergeSortWithBuf :: (PrimMonad m, MVector v e)
                  => Comparison e -> v (PrimState m) e -> v (PrimState m) e -> m ()

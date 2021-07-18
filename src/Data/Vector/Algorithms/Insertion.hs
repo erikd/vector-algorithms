@@ -14,7 +14,9 @@
 
 module Data.Vector.Algorithms.Insertion
        ( sort
+       , sortUniq
        , sortBy
+       , sortUniqBy
        , sortByBounds
        , sortByBounds'
        , Comparison
@@ -27,7 +29,7 @@ import Control.Monad.Primitive
 
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison)
+import Data.Vector.Algorithms.Common (Comparison, uniqueMutableBy)
 
 import qualified Data.Vector.Algorithms.Optimal as O
 
@@ -36,10 +38,22 @@ sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
 {-# INLINABLE sort #-}
 
+-- | A variant on `sort` that returns a vector of unique elements.
+sortUniq :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m (v (PrimState m) e)
+sortUniq = sortUniqBy compare
+{-# INLINABLE sortUniq #-}
+
 -- | Sorts an entire array using a given comparison
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
 sortBy cmp a = sortByBounds cmp a 0 (length a)
 {-# INLINE sortBy #-}
+
+-- | A variant on `sortBy` which returns a vector of unique elements.
+sortUniqBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m (v (PrimState m) e)
+sortUniqBy cmp a = do
+  sortByBounds cmp a 0 (length a)
+  uniqueMutableBy cmp a
+{-# INLINE sortUniqBy #-}
 
 -- | Sorts the portion of an array delimited by [l,u)
 sortByBounds :: (PrimMonad m, MVector v e)
