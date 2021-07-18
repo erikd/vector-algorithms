@@ -25,6 +25,7 @@ import qualified Data.Vector.Generic as GV
 
 import Data.Vector.Algorithms.Optimal (Comparison)
 import Data.Vector.Algorithms.Radix (radix, passes, size)
+import qualified Data.Vector.Algorithms as Alg
 
 import qualified Data.Map as M
 
@@ -208,3 +209,7 @@ prop_search_upbound :: (Ord e)
                     => (forall s. MVector s e -> e -> ST s Int)
                     -> SortedVec e -> e -> Property
 prop_search_upbound = prop_search_insert (<=) (>)
+
+prop_nub :: (Ord e, Show e) => Vector e -> Property
+prop_nub v =
+  V.fromList (nub (V.toList v)) === Alg.nub v
