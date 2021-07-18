@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, TypeOperators, FlexibleContexts #-}
+{-# LANGUAGE RankNTypes, TypeOperators, FlexibleContexts, TypeApplications #-}
 
 module Main (main) where
 
@@ -87,6 +87,9 @@ check_Int_select = forM_ algos $ \(name,algo) ->
  algos = [ ("intro-select", WrapSizeAlgo INT.select)
          , ("heap select", WrapSizeAlgo H.select)
          ]
+
+check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
+
 
 check_radix_sorts = do
   qc (label "radix Word8"       . prop_fullsort (R.sort :: Algo Word8  ()))
@@ -223,3 +226,5 @@ main = do putStrLn "Int tests:"
           check_search_range
           putStrLn "Corner cases:"
           check_corners
+          putStrLn "Algorithms:"
+          check_nub
