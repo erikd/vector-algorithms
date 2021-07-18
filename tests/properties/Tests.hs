@@ -18,7 +18,9 @@ import qualified Data.ByteString as B
 
 import Data.Vector (Vector)
 import qualified Data.Vector as V
+import qualified Data.Vector.Mutable as BoxedMV
 
+import qualified Data.Vector.Generic as G
 import Data.Vector.Generic.Mutable (MVector)
 import qualified Data.Vector.Generic.Mutable as MV
 
@@ -36,10 +38,12 @@ import qualified Data.Vector.Algorithms.Search       as SR
 type Algo      e r = forall s mv. MVector mv e => mv s e -> ST s r
 type SizeAlgo  e r = forall s mv. MVector mv e => mv s e -> Int -> ST s r
 type BoundAlgo e r = forall s mv. MVector mv e => mv s e -> Int -> Int -> ST s r
+type MonoAlgo  e r = forall s . BoxedMV.MVector s e -> ST s r
 
 newtype WrappedAlgo      e r = WrapAlgo      { unWrapAlgo      :: Algo      e r }
 newtype WrappedSizeAlgo  e r = WrapSizeAlgo  { unWrapSizeAlgo  :: SizeAlgo  e r }
 newtype WrappedBoundAlgo e r = WrapBoundAlgo { unWrapBoundAlgo :: BoundAlgo e r }
+newtype WrappedMonoAlgo  e r = MonoAlgo      { unWrapMonoAlgo  :: MonoAlgo  e r }
 
 args = stdArgs
        { maxSuccess = 1000
@@ -55,6 +59,17 @@ check_Int_sort = forM_ algos $ \(name,algo) ->
          , ("merge sort", WrapAlgo M.sort)
          , ("heapsort", WrapAlgo H.sort)
          , ("timsort", WrapAlgo T.sort)
+         ]
+
+check_Int_sortUniq = forM_ algos $ \(name,algo) ->
+  quickCheckWith args (label name . prop_full_sortUniq (unWrapMonoAlgo algo))
+ where
+ algos :: [(String, WrappedMonoAlgo Int (Vector Int))]
+ algos = [ ("intro_sortUniq", MonoAlgo (runFreeze INT.sortUniq))
+         , ("insertion sortUniq", MonoAlgo (runFreeze INS.sortUniq))
+         , ("merge sortUniq", MonoAlgo (runFreeze M.sortUniq))
+         , ("heap_sortUniq", MonoAlgo (runFreeze H.sortUniq))
+         , ("tim_sortUniq", MonoAlgo (runFreeze T.sortUniq))
          ]
 
 check_Int_partialsort = forM_ algos $ \(name,algo) ->
@@ -191,6 +206,7 @@ check_search_range = do
 
 main = do putStrLn "Int tests:"
           check_Int_sort
+          check_Int_sortUniq
           check_Int_partialsort
           check_Int_select
           putStrLn "Radix sort tests:"

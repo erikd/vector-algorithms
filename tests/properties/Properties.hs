@@ -1,4 +1,4 @@
-{-# LANGUAGE RankNTypes, FlexibleContexts #-}
+{-# LANGUAGE RankNTypes, FlexibleContexts, GADTs #-}
 
 module Properties where
 
@@ -21,6 +21,7 @@ import qualified Data.Vector.Mutable as MV
 import Data.Vector.Generic (modify)
 
 import qualified Data.Vector.Generic.Mutable as G
+import qualified Data.Vector.Generic as GV
 
 import Data.Vector.Algorithms.Optimal (Comparison)
 import Data.Vector.Algorithms.Radix (radix, passes, size)
@@ -38,12 +39,36 @@ prop_sorted arr | V.length arr < 2 = property True
  check e arr | V.null arr = property True
              | otherwise  = e <= V.head arr .&. check (V.head arr) (V.tail arr)
 
+prop_sorted_uniq :: (Ord e) => Vector e -> Property
+prop_sorted_uniq arr | V.length arr < 2 = property True
+                     | otherwise        = check (V.head arr) (V.tail arr)
+ where
+ check e arr | V.null arr = property True
+             | otherwise  = e < V.head arr .&. check (V.head arr) (V.tail arr)
+
 prop_empty :: (Ord e) => (forall s. MV.MVector s e -> ST s ()) -> Property
 prop_empty algo = prop_sorted (modify algo $ V.fromList [])
 
 prop_fullsort :: (Ord e)
               => (forall s mv. G.MVector mv e => mv s e -> ST s ()) -> Vector e -> Property
 prop_fullsort algo arr = prop_sorted $ modify algo arr
+
+runFreeze
+  :: forall e . (Ord e)
+  => (forall s mv . G.MVector mv e => mv s e -> ST s (mv s e))
+  -> (forall s v mv. (GV.Vector v e, mv ~ GV.Mutable v) => mv s e -> ST s (v e))
+runFreeze alg mv = do
+  mv <- alg mv
+  GV.unsafeFreeze mv
+
+prop_full_sortUniq
+  :: (Ord e, Show e)
+  => (forall s . MV.MVector s e -> ST s (Vector e))
+  -> Vector e -> Property
+prop_full_sortUniq algo arr = runST $ do
+  mv <- V.unsafeThaw arr
+  arr' <- algo mv
+  pure (prop_sorted_uniq arr')
 
 {-
 prop_schwartzian :: (UA e, UA k, Ord k)

@@ -35,7 +35,9 @@
 module Data.Vector.Algorithms.Intro
        ( -- * Sorting
          sort
+       , sortUniq
        , sortBy
+       , sortUniqBy
        , sortByBounds
          -- * Selecting
        , select
@@ -56,7 +58,7 @@ import Control.Monad.Primitive
 import Data.Bits
 import Data.Vector.Generic.Mutable
 
-import Data.Vector.Algorithms.Common (Comparison, midPoint)
+import Data.Vector.Algorithms.Common (Comparison, midPoint, uniqueMutableBy)
 
 import qualified Data.Vector.Algorithms.Insertion as I
 import qualified Data.Vector.Algorithms.Optimal   as O
@@ -67,10 +69,23 @@ sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
 {-# INLINABLE sort #-}
 
--- | Sorts an entire array using a custom ordering.
+-- | A variant on `sort` that returns a vector of unique elements.
+sortUniq :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m (v (PrimState m) e)
+sortUniq = sortUniqBy compare
+{-# INLINABLE sortUniq #-}
+
+-- | A variant on `sortBy` which returns a vector of unique elements.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()
 sortBy cmp a = sortByBounds cmp a 0 (length a)
 {-# INLINE sortBy #-}
+
+-- | Sorts an entire array using a custom ordering returning a vector of
+-- the unique elements.
+sortUniqBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m (v (PrimState m) e)
+sortUniqBy cmp a = do
+  sortByBounds cmp a 0 (length a)
+  uniqueMutableBy cmp a
+{-# INLINE sortUniqBy #-}
 
 -- | Sorts a portion of an array [l,u) using a custom ordering
 sortByBounds
