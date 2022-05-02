@@ -115,7 +115,7 @@ resizeVector !src !sz = do
   pure dst
 {-# inline resizeVector #-}
 
--- Used inernally in resizeVector: copy a vector from a larger to
+-- Used internally in resizeVector: copy a vector from a larger to
 -- smaller vector. Should not be used if the source vector
 -- is smaller than the target vector.
 copyToSmaller
