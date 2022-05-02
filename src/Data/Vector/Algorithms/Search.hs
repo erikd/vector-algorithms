@@ -119,7 +119,7 @@ binarySearchRByBounds cmp vec e = binarySearchPBounds p vec
  where p e' = case cmp e' e of GT -> True ; _ -> False
 {-# INLINE binarySearchRByBounds #-}
 
--- | Given a predicate that is guaraneteed to be monotone on the given vector,
+-- | Given a predicate that is guaranteed to be monotone on the given vector,
 -- finds the first index at which the predicate returns True, or the length of
 -- the array if the predicate is false for the entire array.
 binarySearchP :: (PrimMonad m, MVector v e) => (e -> Bool) -> v (PrimState m) e -> m Int
