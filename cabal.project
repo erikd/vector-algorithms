@@ -6,3 +6,21 @@ tests: True
 
 -- Show full test output
 test-show-details: direct
+
+source-repository-package
+    type: git
+    location: https://github.com/parsonsmatt/primitive
+    tag: 99ebd4b81ab320b71dcffd0c20082c5b2ccbcfee
+
+source-repository-package
+    type: git
+    location: https://github.com/parsonsmatt/vector
+    tag: 532ba91ee81f6af2acc579c54058f5117b2e4326
+    subdir: vector
+    subdir: vector-stream
+
+source-repository-package
+    type: git
+    location: https://github.com/parsonsmatt/bitvec
+    tag: 63ca5c514142dd0a4f2b27f153b4a72893ad049b
+
