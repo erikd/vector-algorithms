@@ -58,7 +58,7 @@ library
 
   build-depends: base >= 4.5 && < 5,
                  bitvec >= 1.0 && < 1.2,
-                 vector >= 0.6 && < 0.14,
+                 vector >= 0.6 && < 0.14, -- TODO: bump this to < 0.15 whenever the new version is released
                  primitive >=0.3 && <0.8,
                  bytestring >= 0.9 && < 1.0
 
