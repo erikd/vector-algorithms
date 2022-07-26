@@ -121,7 +121,7 @@ resizeVector !src !sz = do
 copyToSmaller
   :: (MVector v a, PrimMonad m)
   => v (PrimState m) a -> v (PrimState m) a -> m ()
-copyToSmaller !dst !src = do_copy 0
+copyToSmaller !dst !src = stToPrim $ do_copy 0
     where
       !n = basicLength dst
 
