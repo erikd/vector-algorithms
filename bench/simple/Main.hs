@@ -12,7 +12,8 @@ import Data.Char
 import Data.Ord  (comparing)
 import Data.List (maximumBy)
 
-import Data.Vector.Unboxed.Mutable
+import qualified Data.Vector.Unboxed.Mutable as UVector
+import Data.Vector.Unboxed.Mutable (MVector, Unbox)
 
 import qualified Data.Vector.Algorithms.Insertion    as INS
 import qualified Data.Vector.Algorithms.Intro        as INT
@@ -35,8 +36,8 @@ noalgo _ = return ()
 -- Allocates a temporary buffer, like mergesort for similar purposes as noalgo.
 alloc :: (Unbox e) => MVector RealWorld e -> IO ()
 alloc arr | len <= 4  = arr `seq` return ()
-          | otherwise = (new (len `div` 2) :: IO (MVector RealWorld Int)) >> return ()
- where len = length arr
+          | otherwise = (UVector.new (len `div` 2) :: IO (MVector RealWorld Int)) >> return ()
+ where len = UVector.length arr
 
 displayTime :: String -> Integer -> IO ()
 displayTime s elapsed = putStrLn $
@@ -47,7 +48,7 @@ run s t = t >>= displayTime s
 
 sortSuite :: String -> GenIO -> Int -> (MVector RealWorld Int -> IO ()) -> IO ()
 sortSuite str g n sort = do
-  arr <- new n
+  arr <- UVector.new n
   putStrLn $ "Testing: " ++ str
   run "Random            " $ speedTest arr n (rand g >=> modulo n) sort
   run "Sorted            " $ speedTest arr n ascend sort

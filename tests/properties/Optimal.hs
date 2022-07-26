@@ -8,7 +8,7 @@ module Optimal where
 import Control.Arrow
 import Control.Monad
 
-import Data.List
+import qualified Data.List as List
 import Data.Function
 
 import Data.Vector.Generic hiding (map, zip, concatMap, (++), replicate, foldM)
@@ -32,18 +32,18 @@ monotones k = atLeastOne 0
 stability :: (Vector v (Int,Int)) => Int -> [v (Int, Int)]
 stability n = concatMap ( map fromList
                         . foldM interleavings []
-                        . groupBy ((==) `on` fst)
+                        . List.groupBy ((==) `on` fst)
                         . flip zip [0..])
               $ monotones (n-2) n
 
 sort2 :: (Vector v Int) => [v Int]
-sort2 = map fromList $ permutations [0,1]
+sort2 = map fromList $ List.permutations [0,1]
 
 stability2 :: (Vector v (Int,Int)) => [v (Int, Int)]
 stability2 = [fromList [(0, 0), (0, 1)]]
 
 sort3 :: (Vector v Int) => [v Int]
-sort3 = map fromList $ permutations [0..2]
+sort3 = map fromList $ List.permutations [0..2]
 
 {-
 stability3 :: [UArr (Int :*: Int)]
@@ -58,5 +58,5 @@ stability3 = map toU [ [0:*:0, 0:*:1, 0:*:2]
 -}
 
 sort4 :: (Vector v Int) => [v Int]
-sort4 = map fromList $ permutations [0..3]
+sort4 = map fromList $ List.permutations [0..3]
 
