@@ -59,7 +59,7 @@ library
   build-depends: base >= 4.5 && < 5,
                  bitvec >= 1.0 && < 1.2,
                  vector >= 0.6 && < 0.14,
-                 primitive >=0.3 && <0.8,
+                 primitive >=0.3 && <0.9,
                  bytestring >= 0.9 && < 1.0
 
   if ! impl (ghc >= 7.8)
