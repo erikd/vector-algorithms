@@ -1,0 +1,4 @@
+branches: master
+
+-- Tests fail to build with GHC 7.10
+tests: >= 8.0
