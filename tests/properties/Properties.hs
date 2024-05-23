@@ -1,4 +1,7 @@
-{-# LANGUAGE RankNTypes, FlexibleContexts, GADTs #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Properties where
 
