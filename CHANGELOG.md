@@ -1,3 +1,7 @@
+## Version 0.9.0.2 (2024-05-23)
+
+- Add `TypeOperators` pragma where needed.
+
 ## Version 0.9.0.1 (2022-07-28)
 
 - Allow building with vector-0.13.*.
