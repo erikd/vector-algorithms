@@ -6,3 +6,6 @@ tests: True
 
 -- Show full test output
 test-show-details: direct
+
+allow-newer:
+  , *:base
