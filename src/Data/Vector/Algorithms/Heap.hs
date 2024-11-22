@@ -188,8 +188,8 @@ partialSortByBounds cmp a k l u
   | len == 3   = O.sort3ByOffset cmp a l
   | len == 4   = O.sort4ByOffset cmp a l
   | u <= l + k = sortByBounds cmp a l u
-  | otherwise  = do selectByBounds cmp a k l u
-                    sortHeap cmp a l (l + 4) (l + k)
+  | otherwise  = do selectByBounds cmp a (k + 1) l u
+                    sortHeap cmp a l (l + 4) (l + k + 1)
                     O.sort4ByOffset cmp a l
  where
  len = u - l

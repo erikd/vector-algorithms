@@ -97,8 +97,14 @@ sanity = 100
 prop_partialsort :: (Ord e, Arbitrary e, Show e)
                  => (forall s mv. G.MVector mv e => mv s e -> Int -> ST s ())
                  -> Positive Int -> Property
-prop_partialsort = prop_sized $ \algo k ->
-  prop_sorted . V.take k . modify algo
+prop_partialsort = prop_sized $ \algo k v -> do
+  let newVec = modify algo v
+      vhead = V.take k newVec
+      vtail = V.drop k newVec
+  prop_sorted vhead
+    .&&.
+      -- Every element in the head should be < every element in the tail.
+      if V.null vtail then 1 == 1 else V.maximum vhead <= V.minimum vtail
 
 prop_sized_empty :: (Ord e) => (forall s. MV.MVector s e -> Int -> ST s ()) -> Property
 prop_sized_empty algo = prop_empty (flip algo 0) .&&. prop_empty (flip algo 10)
