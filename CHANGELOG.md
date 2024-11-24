@@ -1,3 +1,8 @@
+## Version 0.9.0.3 (2024-11-25)
+
+- Fix an off-by-one error Heap.partialSort functions.
+- Support latest ghcs.
+
 ## Version 0.9.0.2 (2024-05-23)
 
 - Add `TypeOperators` pragma where needed.
