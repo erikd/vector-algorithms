@@ -67,12 +67,12 @@ import qualified Data.Vector.Algorithms.Heap      as H
 -- | Sorts an entire array using the default ordering.
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
-{-# INLINABLE sort #-}
+{-# INLINE sort #-}
 
 -- | A variant on `sort` that returns a vector of unique elements.
 sortUniq :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m (v (PrimState m) e)
 sortUniq = sortUniqBy compare
-{-# INLINABLE sortUniq #-}
+{-# INLINE sortUniq #-}
 
 -- | A variant on `sortBy` which returns a vector of unique elements.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()

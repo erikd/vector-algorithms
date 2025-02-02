@@ -37,12 +37,12 @@ import qualified Data.Vector.Algorithms.Insertion as I
 -- | Sorts an array using the default comparison.
 sort :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m ()
 sort = sortBy compare
-{-# INLINABLE sort #-}
+{-# INLINE sort #-}
 
 -- | A variant on `sort` that returns a vector of unique elements.
 sortUniq :: (PrimMonad m, MVector v e, Ord e) => v (PrimState m) e -> m (v (PrimState m) e)
 sortUniq = sortUniqBy compare
-{-# INLINABLE sortUniq #-}
+{-# INLINE sortUniq #-}
 
 -- | Sorts an array using a custom comparison.
 sortBy :: (PrimMonad m, MVector v e) => Comparison e -> v (PrimState m) e -> m ()

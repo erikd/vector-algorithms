@@ -244,7 +244,7 @@ sort :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
 sort v = sortBy compare terminate (size p) index v
  where p :: Proxy e
        p = Proxy
-{-# INLINABLE sort #-}
+{-# INLINE sort #-}
 
 -- | A variant on `sort` that returns a vector of unique elements.
 sortUniq :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
@@ -252,7 +252,7 @@ sortUniq :: forall e m v. (PrimMonad m, MVector v e, Lexicographic e, Ord e)
 sortUniq v = sortUniqBy compare terminate (size p) index v
  where p :: Proxy e
        p = Proxy
-{-# INLINABLE sortUniq #-}
+{-# INLINE sortUniq #-}
 
 -- | A fully parameterized version of the sorting algorithm. Again, this
 -- function takes both radix information and a comparison, because the
