@@ -51,10 +51,6 @@ flag bench
                performance
   default: True
 
-flag properties
-  description: Enable the quickcheck tests
-  default: True
-
 -- flag dump-simpl
 --   description: Dumps the simplified core during compilation
 --   default: False
@@ -154,16 +150,13 @@ test-suite properties
     Properties
     Util
 
-  if !flag(properties)
-    buildable: False
-  else
-    build-depends:
-      base >= 4.9,
-      bytestring,
-      containers,
-      QuickCheck > 2.9 && < 2.16,
-      vector,
-      vector-algorithms
+  build-depends:
+    base >= 4.9,
+    bytestring,
+    containers,
+    QuickCheck > 2.9 && < 2.16,
+    vector,
+    vector-algorithms
 
   if flag(llvm)
     ghc-options: -fllvm
