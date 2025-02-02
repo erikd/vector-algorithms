@@ -18,6 +18,7 @@ import qualified Data.Vector.Algorithms.Search  as S
 -- | The `nub` function which removes duplicate elements from a vector.
 nub :: forall v e . (V.Vector v e, Ord e) => v e -> v e
 nub = nubBy compare
+{-# INLINE nub #-}
 
 -- | A version of `nub` with a custom comparison predicate.
 --
@@ -31,6 +32,7 @@ nubBy cmp vec = runST $ do
   destMV <- nubByMut sortUniqBy cmp mv
   v <- V.unsafeFreeze destMV
   pure (V.force v)
+{-# INLINE nubBy #-}
 
 -- | The `nubByMut` function takes in an in-place sort algorithm
 -- and uses it to do a de-deduplicated sort. It then uses this to
@@ -72,3 +74,4 @@ nubByMut alg cmp inp = do
               go (srcInd + 1) (destInd + 1)
   go 0 0
   pure dest
+{-# INLINABLE nubByMut #-}
