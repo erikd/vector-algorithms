@@ -1,3 +1,7 @@
+## Version 0.9.1.0 (2025-02-05)
+
+- More inlining for `sort` and `nib` functions.
+
 ## Version 0.9.0.3 (2024-11-25)
 
 - Fix an off-by-one error Heap.partialSort functions.
