@@ -6,12 +6,3 @@ tests: True
 
 -- Show full test output
 test-show-details: direct
-
-if impl (ghc >= 9.14)
-  allow-newer:
-    , deepseq:base
-    , primitive:base
-    , splitmix:base
-    , tagged:template-haskell
-    , vector:base
-    , vector-stream:base
