@@ -9,6 +9,8 @@ import Prelude
 
 import Optimal
 
+import Adversary
+
 import Control.Monad
 import Control.Monad.ST
 
@@ -374,3 +376,37 @@ prop_heapInsert heapInsert (LargeVec _ v) =
    a <- MV.new (V.length v)
    V.imapM_ (\i e -> heapInsert a 0 i e) v
    V.freeze a
+
+-- ---------------------------------------------------------------------------
+-- Worst-case inputs for introsort
+
+-- | On an input built by McIlroy's adversary for this algorithm, the result
+-- is correct and the number of comparisons stays within 6 n lg n.
+--
+-- Without introsort's heap sort fallback these inputs need about n^2/4
+-- comparisons, which exceeds the bound for every n >= 500 tested here, so
+-- this checks that the fallback works. With it, the observed count is at
+-- most about 3.9 n lg n.
+prop_killer :: CmpAlgo -> (Vector Int -> Vector Int -> Property) -> Property
+prop_killer algo correct = forAll (choose (500, 5000)) $ \n ->
+  let input  = killerInput algo n
+      (c, r) = countComparisons algo input
+      bound  = 6 * fromIntegral n * logBase 2 (fromIntegral n) :: Double
+  in correct input r
+       .&&. counterexample ("n = " ++ show n ++ ": " ++ show c
+                            ++ " comparisons exceeds 6 n lg n = " ++ show (round bound :: Int))
+              (fromIntegral c <= bound)
+
+-- | The result is the sorted input.
+killerSorted :: Vector Int -> Vector Int -> Property
+killerSorted input r = r === V.fromList (sort (V.toList input))
+
+-- | The first half of the result holds the smallest half of the input, in
+-- order if @ordered@ is set.
+killerHalf :: Bool -> Vector Int -> Vector Int -> Property
+killerHalf ordered input r =
+  (if ordered then front else sort front) === lo .&&. sort back === hi
+ where
+ k = V.length input `div` 2
+ (front, back) = splitAt k (V.toList r)
+ (lo, hi) = splitAt k (sort (V.toList input))
