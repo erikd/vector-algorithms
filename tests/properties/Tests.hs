@@ -4,6 +4,8 @@ module Main (main) where
 
 import Properties
 
+import Adversary (CmpAlgo)
+
 import Util
 
 import Test.QuickCheck
@@ -134,6 +136,15 @@ check_heap_ops = do
  qc = quickCheckWith args { maxSuccess = 500 }
  heapify :: HeapifyAlgo
  heapify = H.heapify compare
+
+check_killer = do
+  qc "intro sort"         (\cmp a -> INT.sortBy cmp a) killerSorted
+  qc "intro select"       (\cmp a -> INT.selectBy cmp a (half a)) (killerHalf False)
+  qc "intro partial sort" (\cmp a -> INT.partialSortBy cmp a (half a)) (killerHalf True)
+ where
+ qc :: String -> CmpAlgo -> (Vector Int -> Vector Int -> Property) -> IO ()
+ qc name algo correct = quickCheckWith args { maxSuccess = 50 } (label name (prop_killer algo correct))
+ half a = MV.length a `div` 2
 
 check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
 
@@ -281,3 +292,5 @@ main = do putStrLn "Int tests:"
           check_bounds
           putStrLn "Heap operations:"
           check_heap_ops
+          putStrLn "Introsort worst-case inputs:"
+          check_killer

@@ -160,6 +160,7 @@ test-suite properties
   default-language: Haskell2010
 
   other-modules:
+    Adversary
     Optimal
     Properties
     Util
