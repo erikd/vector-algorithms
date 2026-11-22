@@ -292,3 +292,85 @@ prop_partialSortByBounds algo (BoundsCase v l u k) =
  where
  r = modify (\a -> algo a k l u) v
  (lo, hi) = splitAt k (sort (sliceList l u v))
+
+-- ---------------------------------------------------------------------------
+-- Properties of the heap operations exported by Data.Vector.Algorithms.Heap.
+-- The heap is a 4-ary max-heap: the children of index i are 4i+1 .. 4i+4.
+
+isHeap :: [Int] -> Bool
+isHeap xs = and [ h V.! ((i - 1) `div` 4) >= h V.! i | i <- [1 .. V.length h - 1] ]
+ where h = V.fromList xs
+
+heapProp :: [Int] -> Property
+heapProp xs = counterexample ("not a heap: " ++ show xs) (isHeap xs)
+
+type HeapifyAlgo = forall s. MV.MVector s Int -> Int -> Int -> ST s ()
+
+-- | 'heapify' makes [l, u) a heap, without changing its elements or anything
+-- outside it.
+prop_heapify :: HeapifyAlgo -> BoundsCase -> Property
+prop_heapify heapify (BoundsCase v l u _) =
+  outsideUnchanged v l u r
+    .&&. heapProp (sliceList l u r)
+    .&&. sort (sliceList l u r) === sort (sliceList l u v)
+ where
+ r = modify (\a -> heapify a l u) v
+
+-- | Given a heap in [l, u), 'popTo' to an index t outside [l, u) moves the
+-- maximum to t and leaves a heap of the remaining elements plus the old
+-- value at t in [l, u).
+prop_popTo :: HeapifyAlgo
+           -> (forall s. MV.MVector s Int -> Int -> Int -> Int -> ST s ())
+           -> BoundsCase -> Property
+prop_popTo heapify popTo (BoundsCase v l u _) =
+  u > l && u < V.length v ==>
+    forAll (choose (u, V.length v - 1)) $ \t ->
+      let h = modify (\a -> heapify a l u) v
+          r = modify (\a -> popTo a l u t) h
+          old = sliceList l u h
+      in r V.! t === maximum old
+           .&&. heapProp (sliceList l u r)
+           .&&. sort (sliceList l u r) === sort (delete (maximum old) old ++ [h V.! t])
+           .&&. counterexample "elements outside [l, u) and t changed"
+                  (V.toList (V.take l r) == V.toList (V.take l h)
+                   && and [ r V.! i == h V.! i | i <- [u .. V.length v - 1], i /= t ])
+
+-- | Given a heap in [l, u), 'pop' with upper bound u-1 moves the maximum to
+-- u-1 and leaves a heap in [l, u-1).
+prop_pop :: HeapifyAlgo
+         -> (forall s. MV.MVector s Int -> Int -> Int -> ST s ())
+         -> BoundsCase -> Property
+prop_pop heapify pop (BoundsCase v l u _) =
+  u - l >= 1 ==>
+    outsideUnchanged v l u r
+      .&&. r V.! (u - 1) === maximum (sliceList l u v)
+      .&&. heapProp (sliceList l (u - 1) r)
+      .&&. sort (sliceList l u r) === sort (sliceList l u v)
+ where
+ r = modify (\a -> heapify a l u >> pop a l (u - 1)) v
+
+-- | Given a heap in [l, u), 'sortHeap' with l <= m < u puts the largest
+-- u-m elements, sorted, into [m, u).
+prop_sortHeap :: HeapifyAlgo
+              -> (forall s. MV.MVector s Int -> Int -> Int -> Int -> ST s ())
+              -> BoundsCase -> Property
+prop_sortHeap heapify sortHeap (BoundsCase v l u k) =
+  u > l ==>
+    let m = min (l + k) (u - 1)
+        r = modify (\a -> heapify a l u >> sortHeap a l m u) v
+        sorted = sort (sliceList l u v)
+    in outsideUnchanged v l u r
+         .&&. sliceList m u r === drop (m - l) sorted
+         .&&. sort (sliceList l u r) === sorted
+
+-- | Building a heap by repeated 'heapInsert' gives a heap of the inserted
+-- elements.
+prop_heapInsert :: (forall s. MV.MVector s Int -> Int -> Int -> Int -> ST s ())
+                -> LargeVec -> Property
+prop_heapInsert heapInsert (LargeVec _ v) =
+  heapProp (V.toList r) .&&. sort (V.toList r) === sort (V.toList v)
+ where
+ r = runST $ do
+   a <- MV.new (V.length v)
+   V.imapM_ (\i e -> heapInsert a 0 i e) v
+   V.freeze a

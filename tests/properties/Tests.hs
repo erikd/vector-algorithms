@@ -123,6 +123,18 @@ check_bounds = do
  where
  qc = quickCheckWith args { maxSuccess = 500 }
 
+check_heap_ops = do
+  qc (label "heapify"    . prop_heapify heapify)
+  qc (label "pop"        . prop_pop heapify (H.pop compare))
+  qc (label "popTo"      . prop_popTo heapify (H.popTo compare))
+  qc (label "sortHeap"   . prop_sortHeap heapify (H.sortHeap compare))
+  qc (label "heapInsert" . prop_heapInsert (H.heapInsert compare))
+ where
+ qc :: Testable prop => prop -> IO ()
+ qc = quickCheckWith args { maxSuccess = 500 }
+ heapify :: HeapifyAlgo
+ heapify = H.heapify compare
+
 check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
 
 
@@ -267,3 +279,5 @@ main = do putStrLn "Int tests:"
           check_large
           putStrLn "Sub-range (ByBounds) operations:"
           check_bounds
+          putStrLn "Heap operations:"
+          check_heap_ops
