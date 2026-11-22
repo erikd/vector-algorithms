@@ -104,3 +104,40 @@ nearlySorted n = do
   swaps <- vectorOf k ((,) <$> choose (0, n - 1) <*> choose (0, n - 1))
   -- Apply the swaps in turn, so the result is a permutation of [1 .. n].
   pure . V.toList $ V.modify (\mv -> Control.Monad.mapM_ (uncurry (swap mv)) swaps) (V.fromList [1 .. n])
+
+-- | A vector together with a sub-range [l, u) of it and a count k with
+-- 0 <= k <= u - l, for testing the @...ByBounds@ functions. The vector is
+-- either a small arbitrary one or a 'LargeVec'.
+data BoundsCase = BoundsCase (V.Vector Int) Int Int Int
+
+instance Show BoundsCase where
+  show (BoundsCase v l u k) =
+    "BoundsCase (length " ++ show (V.length v) ++ ") l=" ++ show l
+      ++ " u=" ++ show u ++ " k=" ++ show k ++ " " ++ show v
+
+instance Arbitrary BoundsCase where
+  arbitrary = do
+    v <- oneof [ V.fromList <$> listOf (choose (-20, 20))
+               , (\(LargeVec _ lv) -> lv) <$> arbitrary
+               ]
+    let n = V.length v
+    l <- choose (0, n)
+    u <- choose (l, n)
+    k <- choose (0, u - l)
+    pure (BoundsCase v l u k)
+
+  shrink (BoundsCase v l u k) =
+    [ BoundsCase (V.take u v) l u k | u < n ]
+      ++ [ BoundsCase (V.take (u + (n - u) `div` 2) v) l u k | n - u > 1 ]
+      ++ [ BoundsCase (V.drop l v) 0 (u - l) k | l > 0 ]
+      ++ [ BoundsCase (V.drop (l `div` 2) v) (l - l `div` 2) (u - l `div` 2) k | l > 1 ]
+      ++ [ BoundsCase (V.take a v V.++ V.drop b v) l (u - d) (min k (u - l - d))
+         | (a, b) <- cuts, b > a, let d = b - a ]
+      ++ [ BoundsCase v l u (k `div` 2) | k > 0 ]
+   where
+   n    = V.length v
+   half = (u - l) `div` 2
+   -- Remove the upper half, lower half or last element of [l, u). An empty
+   -- range has nothing to cut, and (u - 1, u) would lie outside it.
+   cuts | u > l     = [(l + half, u), (l, l + half), (u - 1, u)]
+        | otherwise = []

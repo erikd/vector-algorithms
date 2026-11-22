@@ -249,3 +249,46 @@ prop_large_sortUniq algo (LargeVec _ v) = runST $ do
   mv <- V.thaw v
   v' <- algo mv
   pure (v' === V.fromList (M.keys (toBag v)))
+
+-- ---------------------------------------------------------------------------
+-- Properties of the @...ByBounds@ functions
+
+-- | The elements of the result outside [l, u) are unchanged from the input.
+outsideUnchanged :: Vector Int -> Int -> Int -> Vector Int -> Property
+outsideUnchanged v l u r =
+  counterexample "elements outside [l, u) changed" $
+    V.take l r == V.take l v && V.drop u r == V.drop u v
+
+sliceList :: Int -> Int -> Vector e -> [e]
+sliceList l u = V.toList . V.slice l (u - l)
+
+prop_sortByBounds :: (forall s. MV.MVector s Int -> Int -> Int -> ST s ())
+                  -> BoundsCase -> Property
+prop_sortByBounds algo (BoundsCase v l u _) =
+  outsideUnchanged v l u r .&&. sliceList l u r === sort (sliceList l u v)
+ where
+ r = modify (\a -> algo a l u) v
+
+-- | [l, l+k) holds the k smallest elements of the input's [l, u), and
+-- [l+k, u) holds the rest.
+prop_selectByBounds :: (forall s. MV.MVector s Int -> Int -> Int -> Int -> ST s ())
+                    -> BoundsCase -> Property
+prop_selectByBounds algo (BoundsCase v l u k) =
+  outsideUnchanged v l u r
+    .&&. sort (sliceList l (l + k) r) === lo
+    .&&. sort (sliceList (l + k) u r) === hi
+ where
+ r = modify (\a -> algo a k l u) v
+ (lo, hi) = splitAt k (sort (sliceList l u v))
+
+-- | [l, l+k) holds the k smallest elements of the input's [l, u) in order,
+-- and [l+k, u) holds the rest.
+prop_partialSortByBounds :: (forall s. MV.MVector s Int -> Int -> Int -> Int -> ST s ())
+                         -> BoundsCase -> Property
+prop_partialSortByBounds algo (BoundsCase v l u k) =
+  outsideUnchanged v l u r
+    .&&. sliceList l (l + k) r === lo
+    .&&. sort (sliceList (l + k) u r) === hi
+ where
+ r = modify (\a -> algo a k l u) v
+ (lo, hi) = splitAt k (sort (sliceList l u v))
