@@ -112,6 +112,17 @@ check_large = do
          , ("tim sortUniq", MonoAlgo (runFreeze T.sortUniq))
          ]
 
+check_bounds = do
+  qc (label "intro sortByBounds"     . prop_sortByBounds (INT.sortByBounds compare))
+  qc (label "heap sortByBounds"      . prop_sortByBounds (H.sortByBounds compare))
+  qc (label "insertion sortByBounds" . prop_sortByBounds (INS.sortByBounds compare))
+  qc (label "intro selectByBounds"   . prop_selectByBounds (INT.selectByBounds compare))
+  qc (label "heap selectByBounds"    . prop_selectByBounds (H.selectByBounds compare))
+  qc (label "intro partialSortByBounds" . prop_partialSortByBounds (INT.partialSortByBounds compare))
+  qc (label "heap partialSortByBounds"  . prop_partialSortByBounds (H.partialSortByBounds compare))
+ where
+ qc = quickCheckWith args { maxSuccess = 500 }
+
 check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
 
 
@@ -254,3 +265,5 @@ main = do putStrLn "Int tests:"
           check_nub
           putStrLn "Large structured inputs:"
           check_large
+          putStrLn "Sub-range (ByBounds) operations:"
+          check_bounds
