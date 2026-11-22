@@ -222,3 +222,30 @@ prop_search_upbound = prop_search_insert (<=) (>)
 prop_nub :: (Ord e, Show e) => Vector e -> Property
 prop_nub v =
   V.fromList (nub (V.toList v)) === Alg.nub v
+
+-- | Sorting a large structured vector gives the same result as
+-- 'Data.List.sort'. This checks both sortedness and that the output is a
+-- permutation of the input, in time linear in the vector length.
+prop_large_sort :: (forall s mv. G.MVector mv Int => mv s Int -> ST s ())
+                -> LargeVec -> Property
+prop_large_sort algo (LargeVec _ v) =
+  modify algo v === V.fromList (sort (V.toList v))
+
+-- | Sorting a large structured vector of (key, original index) pairs by key
+-- gives the same result as the stable 'Data.List.sortBy'. This also checks
+-- stability.
+prop_large_stable :: (forall e s mv. G.MVector mv e => Comparison e -> mv s e -> ST s ())
+                  -> LargeVec -> Property
+prop_large_stable algo (LargeVec _ v) =
+  modify (algo (comparing fst)) kv === V.fromList (sortBy (comparing fst) (V.toList kv))
+ where
+ kv = V.imap (\i k -> (k, i)) v
+
+-- | 'sortUniq' on a large structured vector gives the sorted distinct
+-- elements.
+prop_large_sortUniq :: (forall s . MV.MVector s Int -> ST s (Vector Int))
+                    -> LargeVec -> Property
+prop_large_sortUniq algo (LargeVec _ v) = runST $ do
+  mv <- V.thaw v
+  v' <- algo mv
+  pure (v' === V.fromList (M.keys (toBag v)))

@@ -88,6 +88,30 @@ check_Int_select = forM_ algos $ \(name,algo) ->
          , ("heap select", WrapSizeAlgo H.select)
          ]
 
+check_large = do
+  forM_ sorts $ \(name, algo) ->
+    qc (label name . prop_large_sort (unWrapAlgo algo))
+  qc (label "merge sort stable" . prop_large_stable M.sortBy)
+  qc (label "timsort stable" . prop_large_stable T.sortBy)
+  forM_ uniqs $ \(name, algo) ->
+    qc (label name . prop_large_sortUniq (unWrapMonoAlgo algo))
+ where
+ qc = quickCheckWith args { maxSuccess = 300 }
+ sorts :: [(String, WrappedAlgo Int ())]
+ sorts = [ ("introsort", WrapAlgo INT.sort)
+         , ("merge sort", WrapAlgo M.sort)
+         , ("heapsort", WrapAlgo H.sort)
+         , ("timsort", WrapAlgo T.sort)
+         , ("radix sort", WrapAlgo R.sort)
+         , ("american flag sort", WrapAlgo AF.sort)
+         ]
+ uniqs :: [(String, WrappedMonoAlgo Int (Vector Int))]
+ uniqs = [ ("intro sortUniq", MonoAlgo (runFreeze INT.sortUniq))
+         , ("merge sortUniq", MonoAlgo (runFreeze M.sortUniq))
+         , ("heap sortUniq", MonoAlgo (runFreeze H.sortUniq))
+         , ("tim sortUniq", MonoAlgo (runFreeze T.sortUniq))
+         ]
+
 check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
 
 
@@ -228,3 +252,5 @@ main = do putStrLn "Int tests:"
           check_corners
           putStrLn "Algorithms:"
           check_nub
+          putStrLn "Large structured inputs:"
+          check_large
