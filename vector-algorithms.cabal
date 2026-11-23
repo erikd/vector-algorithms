@@ -93,6 +93,14 @@ library
   ghc-options:
     -funbox-strict-fields
 
+  -- The same warnings that CI (see .github/workflows/haskell-ci.yml) turns
+  -- into errors.
+  ghc-options: -Wmissing-methods -Wmissing-fields
+  if impl(ghc >= 9.0)
+    ghc-options: -Wincomplete-patterns -Wincomplete-uni-patterns
+  if impl(ghc >= 9.4)
+    ghc-options: -Wunused-packages
+
   -- Cabal/Hackage complains about these
   -- if flag(dump-simpl)
   --   ghc-options: -ddump-simpl -ddump-to-file
@@ -131,6 +139,14 @@ benchmark simple-bench
   build-depends: base, mwc-random, vector, vector-algorithms
   ghc-options: -Wall
 
+  -- The same warnings that CI (see .github/workflows/haskell-ci.yml) turns
+  -- into errors.
+  ghc-options: -Wmissing-methods -Wmissing-fields
+  if impl(ghc >= 9.0)
+    ghc-options: -Wincomplete-patterns -Wincomplete-uni-patterns
+  if impl(ghc >= 9.4)
+    ghc-options: -Wunused-packages
+
   -- Cabal/Hackage complains about these
   -- if flag(dump-simpl)
   --   ghc-options: -ddump-simpl -ddump-to-file
@@ -156,6 +172,14 @@ test-suite properties
     QuickCheck > 2.9 && < 2.20,
     vector,
     vector-algorithms
+
+  -- The same warnings that CI (see .github/workflows/haskell-ci.yml) turns
+  -- into errors.
+  ghc-options: -Wmissing-methods -Wmissing-fields
+  if impl(ghc >= 9.0)
+    ghc-options: -Wincomplete-patterns -Wincomplete-uni-patterns
+  if impl(ghc >= 9.4)
+    ghc-options: -Wunused-packages
 
   if flag(llvm)
     ghc-options: -fllvm
