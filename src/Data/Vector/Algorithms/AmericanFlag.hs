@@ -208,6 +208,14 @@ instance Lexicographic B.ByteString where
     | otherwise       = fromIntegral (B.index b i) + 1
   {-# INLINE index #-}
 
+-- | Orders pairs by their first component, then their second.
+--
+-- /Note:/ this is only consistent with the 'Ord' instance for pairs when the
+-- 'extent' of the first component is the same for every value, as it is for
+-- the fixed-width integral types. For a first component of varying extent,
+-- such as 'B.ByteString', the keys of the two components run into each other
+-- and pairs may be sorted incorrectly; for example @(\"a\", 100)@ can end up
+-- after @(\"ab\", 3)@.
 instance (Lexicographic a, Lexicographic b) => Lexicographic (a, b) where
   extent (a,b) = extent a + extent b
   {-# INLINE extent #-}
