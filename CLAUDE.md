@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-`vector-algorithms` is a Haskell library of efficient in-place sorting (and related) algorithms over mutable vectors from the `vector` package. It supports a wide GHC range (see `tested-with` in `vector-algorithms.cabal`, currently 8.2 – 9.12, with preliminary 9.14 support), so avoid language features or library APIs that break older compilers.
+`vector-algorithms` is a Haskell library of efficient in-place sorting (and related) algorithms over mutable vectors from the `vector` package. Supports GHC versions as listed in the cabal file (`tested-with` in `vector-algorithms.cabal`), so avoid language features or library APIs that break older compilers.
 
 ## Commands
 
