@@ -20,7 +20,7 @@ import Control.Monad.ST
 
 import Data.Int
 import Data.Word
-import Data.Ord (Down (..))
+import Data.Ord (Down (..), comparing)
 
 import qualified Data.ByteString as B
 
@@ -241,8 +241,20 @@ check_stable = do quickCheckWith args (label "insertion sort" . prop_stable INS.
 check_optimal = do qc . label "size 2" $ prop_optimal 2 O.sort2ByOffset
                    qc . label "size 3" $ prop_optimal 3 O.sort3ByOffset
                    qc . label "size 4" $ prop_optimal 4 O.sort4ByOffset
+                   qcIx . label "size 2 by index" $ prop_optimal_byIndex 2 sort2
+                   qcIx . label "size 3 by index" $ prop_optimal_byIndex 3 sort3
+                   qcIx . label "size 4 by index" $ prop_optimal_byIndex 4 sort4
  where
  qc = quickCheck
+ qcIx :: Property -> IO ()
+ qcIx = quickCheckWith args { maxSuccess = 500 }
+ sort2, sort3, sort4 :: ByIndexAlgo
+ sort2 ixs a = case ixs of [i, j]       -> O.sort2ByIndex (comparing fst) a i j
+                           _            -> error "sort2: expected 2 indices"
+ sort3 ixs a = case ixs of [i, j, k]    -> O.sort3ByIndex (comparing fst) a i j k
+                           _            -> error "sort3: expected 3 indices"
+ sort4 ixs a = case ixs of [i, j, k, l] -> O.sort4ByIndex (comparing fst) a i j k l
+                           _            -> error "sort4: expected 4 indices"
 
 check_permutation = do
   qc $ label "insertion"    . prop_permutation (INS.sort :: Algo Int ())
