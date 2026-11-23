@@ -410,3 +410,18 @@ killerHalf ordered input r =
  k = V.length input `div` 2
  (front, back) = splitAt k (V.toList r)
  (lo, hi) = splitAt k (sort (V.toList input))
+
+-- ---------------------------------------------------------------------------
+-- Sorting large vectors of other element types
+
+-- | Like 'prop_large_sort', but first maps the 'Int' keys to another element
+-- type. Mapping with a function that has few distinct values in its first
+-- component gives large groups of elements that only differ later on.
+prop_large_sort_via :: (Ord e, Show e)
+                    => (Int -> e)
+                    -> (forall s mv. G.MVector mv e => mv s e -> ST s ())
+                    -> LargeVec -> Property
+prop_large_sort_via f algo (LargeVec _ v) =
+  modify algo w === V.fromList (sort (V.toList w))
+ where
+ w = V.map f v

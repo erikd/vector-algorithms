@@ -15,6 +15,7 @@ import Control.Monad.ST
 
 import Data.Int
 import Data.Word
+import Data.Ord (Down (..))
 
 import qualified Data.ByteString as B
 
@@ -72,6 +73,7 @@ check_Int_sortUniq = forM_ algos $ \(name,algo) ->
          , ("merge sortUniq", MonoAlgo (runFreeze M.sortUniq))
          , ("heap_sortUniq", MonoAlgo (runFreeze H.sortUniq))
          , ("tim_sortUniq", MonoAlgo (runFreeze T.sortUniq))
+         , ("flag_sortUniq", MonoAlgo (runFreeze AF.sortUniq))
          ]
 
 check_Int_partialsort = forM_ algos $ \(name,algo) ->
@@ -112,6 +114,7 @@ check_large = do
          , ("merge sortUniq", MonoAlgo (runFreeze M.sortUniq))
          , ("heap sortUniq", MonoAlgo (runFreeze H.sortUniq))
          , ("tim sortUniq", MonoAlgo (runFreeze T.sortUniq))
+         , ("flag sortUniq", MonoAlgo (runFreeze AF.sortUniq))
          ]
 
 check_bounds = do
@@ -145,6 +148,32 @@ check_killer = do
  qc :: String -> CmpAlgo -> (Vector Int -> Vector Int -> Property) -> IO ()
  qc name algo correct = quickCheckWith args { maxSuccess = 50 } (label name (prop_killer algo correct))
  half a = MV.length a `div` 2
+
+check_flag_compound = do
+  -- Few distinct first components, so that large groups of elements are
+  -- distinguished only by their second component.
+  qc "flag (Word8, Word8)"   $ prop_large_sort_via (\x -> (w8 (x `mod` 3), w8 x)) AF.sort
+  qc "flag (Word16, Word16)" $ prop_large_sort_via (\x -> (w16 (x `mod` 3), w16 x)) AF.sort
+  qc "flag (Int, Int)"       $ prop_large_sort_via (\x -> (x `mod` 3, x)) AF.sort
+  qc "flag (Word8, Int)"     $ prop_large_sort_via (\x -> (w8 (x `mod` 3), x)) AF.sort
+  qc "flag (Int, Word8)"     $ prop_large_sort_via (\x -> (x `mod` 3, w8 x)) AF.sort
+  qc "flag Either"           $ prop_large_sort_via
+                                 (\x -> if even x then Left (w16 (x `div` 7)) else Right x) AF.sort
+  qc "flag (ByteString, Int)" $ prop_large_sort_via
+                                 (\x -> (B.pack [fromIntegral (x `mod` 3)], x)) AF.sort
+  -- A custom radix and comparison that sort into descending order.
+  qc "flag sortBy descending" $ prop_large_sort_via (Down . w32)
+       (AF.sortBy compare (\(Down e) i -> AF.terminate e i) 256
+                  (\i (Down e) -> 255 - AF.index i e))
+ where
+ qc :: Testable prop => String -> prop -> IO ()
+ qc name = quickCheckWith args { maxSuccess = 300 } . label name
+ w8 :: Int -> Word8
+ w8 = fromIntegral
+ w16 :: Int -> Word16
+ w16 = fromIntegral
+ w32 :: Int -> Word32
+ w32 = fromIntegral
 
 check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
 
@@ -184,7 +213,8 @@ check_schwartzian = do
  i2w = fromIntegral
 -}
 
-check_stable = do quickCheckWith args (label "merge sort" . prop_stable M.sortBy)
+check_stable = do quickCheckWith args (label "insertion sort" . prop_stable INS.sortBy)
+                  quickCheckWith args (label "merge sort" . prop_stable M.sortBy)
                   quickCheckWith args (label "radix sort" . prop_stable_radix R.sortBy)
                   quickCheckWith args (label "tim sort" . prop_stable T.sortBy)
 
@@ -196,6 +226,7 @@ check_optimal = do qc . label "size 2" $ prop_optimal 2 O.sort2ByOffset
  qc = quickCheck
 
 check_permutation = do
+  qc $ label "insertion"    . prop_permutation (INS.sort :: Algo Int ())
   qc $ label "introsort"    . prop_permutation (INT.sort :: Algo Int ())
   qc $ label "heapsort"     . prop_permutation (H.sort :: Algo Int ())
 
@@ -211,6 +242,7 @@ check_permutation = do
   qc $ label "radix W32"    . prop_permutation (R.sort :: Algo Word32 ())
   qc $ label "radix W64"    . prop_permutation (R.sort :: Algo Word64 ())
   qc $ label "radix Word"   . prop_permutation (R.sort :: Algo Word   ())
+  qc $ label "radix (Int, Int)" . prop_permutation (R.sort :: Algo (Int, Int) ())
   qc $ label "flag I8"      . prop_permutation (AF.sort :: Algo Int8   ())
   qc $ label "flag I16"     . prop_permutation (AF.sort :: Algo Int16  ())
   qc $ label "flag I32"     . prop_permutation (AF.sort :: Algo Int32  ())
@@ -235,6 +267,7 @@ check_permutation = do
  qc prop = quickCheckWith args prop
 
 check_corners = do
+  qc "insertion empty"    $ prop_empty       (INS.sort        :: Algo Int ())
   qc "introsort empty"    $ prop_empty       (INT.sort        :: Algo Int ())
   qc "intropartial empty" $ prop_sized_empty (INT.partialSort :: SizeAlgo Int ())
   qc "introselect empty"  $ prop_sized_empty (INT.select      :: SizeAlgo Int ())
@@ -294,3 +327,5 @@ main = do putStrLn "Int tests:"
           check_heap_ops
           putStrLn "Introsort worst-case inputs:"
           check_killer
+          putStrLn "American flag sort on compound types:"
+          check_flag_compound
