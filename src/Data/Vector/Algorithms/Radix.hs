@@ -90,6 +90,7 @@ instance Radix Int16 where
   {-# INLINE size #-}
   radix 0 e = fromIntegral (e .&. 255)
   radix 1 e = fromIntegral (((e `xor` minBound) `shiftR` 8) .&. 255)
+  radix _ _ = 0
   {-# INLINE radix #-}
 
 instance Radix Int32 where
@@ -101,6 +102,7 @@ instance Radix Int32 where
   radix 1 e = fromIntegral ((e `shiftR` 8) .&. 255)
   radix 2 e = fromIntegral ((e `shiftR` 16) .&. 255)
   radix 3 e = fromIntegral (((e `xor` minBound) `shiftR` 24) .&. 255)
+  radix _ _ = 0
   {-# INLINE radix #-}
 
 instance Radix Int64 where
@@ -116,6 +118,7 @@ instance Radix Int64 where
   radix 5 e = fromIntegral ((e `shiftR` 40) .&. 255)
   radix 6 e = fromIntegral ((e `shiftR` 48) .&. 255)
   radix 7 e = fromIntegral (((e `xor` minBound) `shiftR` 56) .&. 255)
+  radix _ _ = 0
   {-# INLINE radix #-}
 
 instance Radix Word where
@@ -142,6 +145,7 @@ instance Radix Word16 where
   {-# INLINE size #-}
   radix 0 e = fromIntegral (e .&. 255)
   radix 1 e = fromIntegral ((e `shiftR` 8) .&. 255)
+  radix _ _ = 0
   {-# INLINE radix #-}
 
 instance Radix Word32 where
@@ -153,6 +157,7 @@ instance Radix Word32 where
   radix 1 e = fromIntegral ((e `shiftR` 8) .&. 255)
   radix 2 e = fromIntegral ((e `shiftR` 16) .&. 255)
   radix 3 e = fromIntegral ((e `shiftR` 24) .&. 255)
+  radix _ _ = 0
   {-# INLINE radix #-}
 
 instance Radix Word64 where
@@ -168,6 +173,7 @@ instance Radix Word64 where
   radix 5 e = fromIntegral ((e `shiftR` 40) .&. 255)
   radix 6 e = fromIntegral ((e `shiftR` 48) .&. 255)
   radix 7 e = fromIntegral ((e `shiftR` 56) .&. 255)
+  radix _ _ = 0
   {-# INLINE radix #-}
 
 instance (Radix i, Radix j) => Radix (i, j) where
