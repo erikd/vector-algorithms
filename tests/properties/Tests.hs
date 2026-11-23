@@ -8,7 +8,12 @@ import Adversary (CmpAlgo)
 
 import Util
 
-import Test.QuickCheck
+import Test.QuickCheck hiding (quickCheck, quickCheckWith)
+import qualified Test.QuickCheck as QC
+
+import Data.IORef
+import System.Exit (exitFailure)
+import System.IO.Unsafe (unsafePerformIO)
 
 import Control.Monad
 import Control.Monad.ST
@@ -298,7 +303,32 @@ check_search_range = do
  where
  qc prop = quickCheckWith args prop
 
-main = do putStrLn "Int tests:"
+-- | The number of properties that have failed so far.
+failures :: IORef Int
+failures = unsafePerformIO (newIORef 0)
+{-# NOINLINE failures #-}
+
+-- | Like 'QC.quickCheckWith', but records failures so that the test suite
+-- can exit with a failure status.
+quickCheckWith :: Testable prop => Args -> prop -> IO ()
+quickCheckWith a p = do
+  r <- QC.quickCheckWithResult a p
+  unless (isSuccess r) $ modifyIORef' failures (+ 1)
+
+quickCheck :: Testable prop => prop -> IO ()
+quickCheck = quickCheckWith stdArgs
+
+main :: IO ()
+main = do
+  runTests
+  n <- readIORef failures
+  when (n > 0) $ do
+    putStrLn (show n ++ " properties failed")
+    exitFailure
+
+runTests :: IO ()
+runTests = do
+          putStrLn "Int tests:"
           check_Int_sort
           check_Int_sortUniq
           check_Int_partialsort
