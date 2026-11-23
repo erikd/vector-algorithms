@@ -146,9 +146,9 @@ check_heap_ops = do
  heapify = H.heapify compare
 
 check_killer = do
-  qc "intro sort"         (\cmp a -> INT.sortBy cmp a) killerSorted
-  qc "intro select"       (\cmp a -> INT.selectBy cmp a (half a)) (killerHalf False)
-  qc "intro partial sort" (\cmp a -> INT.partialSortBy cmp a (half a)) (killerHalf True)
+  qc "intro sort"         (\cmp a -> INT.sortBy cmp a) resultSorted
+  qc "intro select"       (\cmp a -> INT.selectBy cmp a (half a)) (resultHalf False)
+  qc "intro partial sort" (\cmp a -> INT.partialSortBy cmp a (half a)) (resultHalf True)
  where
  qc :: String -> CmpAlgo -> (Vector Int -> Vector Int -> Property) -> IO ()
  qc name algo correct = quickCheckWith args { maxSuccess = 50 } (label name (prop_killer algo correct))
@@ -193,6 +193,51 @@ check_search = do
  where
  qc :: Testable prop => String -> prop -> IO ()
  qc name = quickCheckWith args { maxSuccess = 1000 } . label name
+
+check_vector_types = do
+  forM_ sorts $ \(name, algo) -> do
+    qc name (prop_vector_types (unWrapAlgo algo) resultSorted)
+    qc (name ++ " large") (\(LargeVec _ v) -> prop_vector_types (unWrapAlgo algo) resultSorted v)
+  -- Insertion sort is quadratic, so only test it on small vectors.
+  qc "insertion sort" (prop_vector_types INS.sort resultSorted)
+  forM_ uniqs $ \(name, algo) -> do
+    qc name (prop_vector_types_uniq (unWrapUniq algo))
+    qc (name ++ " large") (\(LargeVec _ v) -> prop_vector_types_uniq (unWrapUniq algo) v)
+  qc "insertion sortUniq" (prop_vector_types_uniq INS.sortUniq)
+  forM_ halves $ \(name, ordered, algo) ->
+    qc (name ++ " large")
+       (\(LargeVec _ v) -> prop_vector_types (\a -> unWrapSizeAlgo algo a (half a)) (resultHalf ordered) v)
+  qc "merge sort stable unboxed" (prop_stable_unboxed M.sortBy)
+  qc "timsort stable unboxed"    (prop_stable_unboxed T.sortBy)
+  qc "nub"       prop_nub_vector_types
+  qc "nub large" (\(LargeVec _ v) -> prop_nub_vector_types v)
+ where
+ qc :: Testable prop => String -> prop -> IO ()
+ qc name = quickCheckWith args { maxSuccess = 200 } . label name
+ half a = MV.length a `div` 2
+ sorts :: [(String, WrappedAlgo Int ())]
+ sorts = [ ("introsort", WrapAlgo INT.sort)
+         , ("merge sort", WrapAlgo M.sort)
+         , ("heapsort", WrapAlgo H.sort)
+         , ("timsort", WrapAlgo T.sort)
+         , ("radix sort", WrapAlgo R.sort)
+         , ("american flag sort", WrapAlgo AF.sort)
+         ]
+ uniqs :: [(String, WrappedUniq)]
+ uniqs = [ ("intro sortUniq", WrapUniq INT.sortUniq)
+         , ("merge sortUniq", WrapUniq M.sortUniq)
+         , ("heap sortUniq", WrapUniq H.sortUniq)
+         , ("tim sortUniq", WrapUniq T.sortUniq)
+         , ("flag sortUniq", WrapUniq AF.sortUniq)
+         ]
+ halves :: [(String, Bool, WrappedSizeAlgo Int ())]
+ halves = [ ("intro select", False, WrapSizeAlgo INT.select)
+          , ("heap select", False, WrapSizeAlgo H.select)
+          , ("intro partialSort", True, WrapSizeAlgo INT.partialSort)
+          , ("heap partialSort", True, WrapSizeAlgo H.partialSort)
+          ]
+
+newtype WrappedUniq = WrapUniq { unWrapUniq :: GenUniqAlgo }
 
 check_nub = do
   quickCheckWith args (label "nub Int" . (prop_nub @Int))
@@ -406,3 +451,5 @@ runTests = do
           check_flag_compound
           putStrLn "Searching:"
           check_search
+          putStrLn "Unboxed, storable and primitive vectors:"
+          check_vector_types
