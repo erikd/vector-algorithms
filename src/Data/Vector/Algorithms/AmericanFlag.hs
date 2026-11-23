@@ -210,20 +210,19 @@ instance Lexicographic B.ByteString where
 
 -- | Orders pairs by their first component, then their second.
 --
--- /Note:/ this is only consistent with the 'Ord' instance for pairs when the
--- 'extent' of the first component is the same for every value, as it is for
--- the fixed-width integral types. For a first component of varying extent,
--- such as 'B.ByteString', the keys of the two components run into each other
--- and pairs may be sorted incorrectly; for example @(\"a\", 100)@ can end up
--- after @(\"ab\", 3)@.
+-- A separator bucket, below every bucket of the first component, marks
+-- where the first component's key ends, so that pairs are ordered correctly
+-- even when the first component's 'extent' varies, as for 'B.ByteString'.
 instance (Lexicographic a, Lexicographic b) => Lexicographic (a, b) where
-  extent (a,b) = extent a + extent b
+  extent (a,b) = extent a + 1 + extent b
   {-# INLINE extent #-}
-  size _ = size (Proxy :: Proxy a) `max` size (Proxy :: Proxy b)
+  size _ = (size (Proxy :: Proxy a) + 1) `max` size (Proxy :: Proxy b)
   {-# INLINE size #-}
   index i (a,b)
-    | i >= extent a = index (i - extent a) b
-    | otherwise     = index i a
+    | i <  ea   = 1 + index i a
+    | i == ea   = 0
+    | otherwise = index (i - ea - 1) b
+   where ea = extent a
   {-# INLINE index #-}
 
 instance (Lexicographic a, Lexicographic b) => Lexicographic (Either a b) where
