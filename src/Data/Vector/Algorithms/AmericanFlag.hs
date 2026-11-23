@@ -214,7 +214,7 @@ instance (Lexicographic a, Lexicographic b) => Lexicographic (a, b) where
   size _ = size (Proxy :: Proxy a) `max` size (Proxy :: Proxy b)
   {-# INLINE size #-}
   index i (a,b)
-    | i >= extent a = index i b
+    | i >= extent a = index (i - extent a) b
     | otherwise     = index i a
   {-# INLINE index #-}
 
