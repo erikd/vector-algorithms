@@ -166,6 +166,11 @@ check_flag_compound = do
                                  (\x -> if even x then Left (w16 (x `div` 7)) else Right x) AF.sort
   qc "flag (ByteString, Int)" $ prop_large_sort_via
                                  (\x -> (B.pack [fromIntegral (x `mod` 3)], x)) AF.sort
+  -- First components of varying length, sharing prefixes, so that one
+  -- element's first component can end where another's continues.
+  qc "flag (variable ByteString, Int)" $ prop_large_sort_via (\x -> (varBytes x, x)) AF.sort
+  qc "flag ((Int, variable ByteString), Int)" $
+       prop_large_sort_via (\x -> ((x `mod` 2, varBytes x), x)) AF.sort
   -- A custom radix and comparison that sort into descending order.
   qc "flag sortBy descending" $ prop_large_sort_via (Down . w32)
        (AF.sortBy compare (\(Down e) i -> AF.terminate e i) 256
@@ -179,6 +184,10 @@ check_flag_compound = do
  w16 = fromIntegral
  w32 :: Int -> Word32
  w32 = fromIntegral
+ -- 0 to 3 bytes, drawn from few values (including 0 and 255).
+ varBytes :: Int -> B.ByteString
+ varBytes x = B.pack . take (x `mod` 4) $
+                map (\d -> [0, 1, 97, 255] !! ((x `div` d) `mod` 4)) [4, 16, 64]
 
 check_search = do
   qc "binarySearchPBounds"         $ prop_searchPBounds SR.binarySearchPBounds
