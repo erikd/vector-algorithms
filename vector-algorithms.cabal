@@ -1,6 +1,6 @@
 cabal-version:     >= 1.10
 name:              vector-algorithms
-version:           0.9.1.0
+version:           0.9.1.1
 license:           BSD3
 license-file:      LICENSE
 author:            Dan Doel
