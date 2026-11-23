@@ -425,3 +425,48 @@ prop_large_sort_via f algo (LargeVec _ v) =
   modify algo w === V.fromList (sort (V.toList w))
  where
  w = V.map f v
+
+-- ---------------------------------------------------------------------------
+-- Searching
+
+type PSearchBounds = forall s. (Int -> Bool) -> MV.MVector s Int -> Int -> Int -> ST s Int
+type CmpSearchBounds = forall s. MV.MVector s Int -> Int -> Int -> Int -> ST s Int
+
+runSearch :: Vector Int -> (forall s. MV.MVector s Int -> ST s Int) -> Int
+runSearch v search = runST (V.thaw v >>= search)
+
+-- | The index in [l, u] at which a monotone predicate turns from False to
+-- True on the sorted range [l, u), or u if it is False throughout.
+modelP :: (Int -> Bool) -> Vector Int -> Int -> Int -> Int
+modelP p v l u = l + length (takeWhile (not . p) (sliceList l u v))
+
+-- | A predicate search over [l, u) agrees with the model, for the monotone
+-- predicates (>= e) and (> e).
+prop_searchPBounds :: PSearchBounds -> SearchCase -> Property
+prop_searchPBounds search (SearchCase v l u e) = conjoin
+  [ counterexample name $ runSearch v (\a -> search p a l u) === modelP p v l u
+  | (name, p) <- [(">= e", (>= e)), ("> e", (> e))] ]
+
+-- | A predicate search over the whole vector agrees with the model.
+prop_searchP :: (forall s. (Int -> Bool) -> MV.MVector s Int -> ST s Int)
+             -> SearchCase -> Property
+prop_searchP search (SearchCase v _ _ e) = conjoin
+  [ counterexample name $ runSearch v (search p) === modelP p v 0 (V.length v)
+  | (name, p) <- [(">= e", (>= e)), ("> e", (> e))] ]
+
+-- | 'binarySearchLByBounds' finds the first index in [l, u] at which e can be
+-- inserted, and 'binarySearchRByBounds' the last.
+prop_searchLBounds, prop_searchRBounds :: CmpSearchBounds -> SearchCase -> Property
+prop_searchLBounds search (SearchCase v l u e) =
+  runSearch v (\a -> search a e l u) === modelP (>= e) v l u
+prop_searchRBounds search (SearchCase v l u e) =
+  runSearch v (\a -> search a e l u) === modelP (> e) v l u
+
+-- | 'binarySearchByBounds' finds some index in [l, u] at which e can be
+-- inserted while keeping [l, u) sorted.
+prop_searchAnyBounds :: CmpSearchBounds -> SearchCase -> Property
+prop_searchAnyBounds search (SearchCase v l u e) =
+  counterexample ("result " ++ show i) $
+    modelP (>= e) v l u <= i && i <= modelP (> e) v l u
+ where
+ i = runSearch v (\a -> search a e l u)

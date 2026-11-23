@@ -7,6 +7,7 @@ import Control.Monad.ST
 
 import Data.Word
 import Data.Int
+import qualified Data.List as L
 
 import qualified Data.ByteString as B
 
@@ -141,3 +142,27 @@ instance Arbitrary BoundsCase where
    -- range has nothing to cut, and (u - 1, u) would lie outside it.
    cuts | u > l     = [(l + half, u), (l, l + half), (u - 1, u)]
         | otherwise = []
+
+-- | A sorted vector together with a sub-range [l, u) of it and a key to
+-- search for, which is either one of the elements in the range or an
+-- arbitrary value.
+data SearchCase = SearchCase (V.Vector Int) Int Int Int
+
+instance Show SearchCase where
+  show (SearchCase v l u e) =
+    "SearchCase (length " ++ show (V.length v) ++ ") l=" ++ show l
+      ++ " u=" ++ show u ++ " e=" ++ show e ++ " " ++ show v
+
+instance Arbitrary SearchCase where
+  arbitrary = do
+    BoundsCase v0 l u _ <- arbitrary
+    let v = V.fromList (L.sort (V.toList v0))
+    e <- if u > l
+           then oneof [ (v V.!) <$> choose (l, u - 1), choose (-50, 50)
+                      , pure (minBound + 1), pure (maxBound - 1) ]
+           else choose (-50, 50)
+    pure (SearchCase v l u e)
+
+  -- Shrinking only removes elements, so the vector stays sorted.
+  shrink (SearchCase v l u e) =
+    [ SearchCase v' l' u' e | BoundsCase v' l' u' _ <- shrink (BoundsCase v l u 0) ]

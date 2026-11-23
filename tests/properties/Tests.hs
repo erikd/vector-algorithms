@@ -180,6 +180,20 @@ check_flag_compound = do
  w32 :: Int -> Word32
  w32 = fromIntegral
 
+check_search = do
+  qc "binarySearchPBounds"         $ prop_searchPBounds SR.binarySearchPBounds
+  qc "gallopingSearchLeftPBounds"  $ prop_searchPBounds SR.gallopingSearchLeftPBounds
+  qc "gallopingSearchRightPBounds" $ prop_searchPBounds SR.gallopingSearchRightPBounds
+  qc "binarySearchP"               $ prop_searchP SR.binarySearchP
+  qc "gallopingSearchLeftP"        $ prop_searchP SR.gallopingSearchLeftP
+  qc "gallopingSearchRightP"       $ prop_searchP SR.gallopingSearchRightP
+  qc "binarySearchLByBounds"       $ prop_searchLBounds (SR.binarySearchLByBounds compare)
+  qc "binarySearchRByBounds"       $ prop_searchRBounds (SR.binarySearchRByBounds compare)
+  qc "binarySearchByBounds"        $ prop_searchAnyBounds (SR.binarySearchByBounds compare)
+ where
+ qc :: Testable prop => String -> prop -> IO ()
+ qc name = quickCheckWith args { maxSuccess = 1000 } . label name
+
 check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
 
 
@@ -359,3 +373,5 @@ runTests = do
           check_killer
           putStrLn "American flag sort on compound types:"
           check_flag_compound
+          putStrLn "Searching:"
+          check_search
