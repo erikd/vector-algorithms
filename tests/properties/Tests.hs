@@ -194,7 +194,26 @@ check_search = do
  qc :: Testable prop => String -> prop -> IO ()
  qc name = quickCheckWith args { maxSuccess = 1000 } . label name
 
-check_nub = quickCheckWith args (label "nub Int" . (prop_nub @Int))
+check_nub = do
+  quickCheckWith args (label "nub Int" . (prop_nub @Int))
+  qc "nubBy"       prop_nubBy
+  qc "nubBy large" (\(LargeVec _ v) -> prop_nubBy v)
+  forM_ sortUniqs $ \(name, alg) -> do
+    qc ("nubByMut " ++ name) (prop_nubByMut (unWrapSortUniqBy alg))
+    qc ("nubByMut " ++ name ++ " large") (\(LargeVec _ v) -> prop_nubByMut (unWrapSortUniqBy alg) v)
+  -- Insertion sort is quadratic, so only test it on small vectors.
+  qc "nubByMut insertion" (prop_nubByMut INS.sortUniqBy)
+ where
+ qc :: Testable prop => String -> prop -> IO ()
+ qc name = quickCheckWith args { maxSuccess = 300 } . label name
+ sortUniqs :: [(String, WrappedSortUniqBy)]
+ sortUniqs = [ ("intro", WrapSortUniqBy INT.sortUniqBy)
+             , ("merge", WrapSortUniqBy M.sortUniqBy)
+             , ("heap",  WrapSortUniqBy H.sortUniqBy)
+             , ("tim",   WrapSortUniqBy T.sortUniqBy)
+             ]
+
+newtype WrappedSortUniqBy = WrapSortUniqBy { unWrapSortUniqBy :: SortUniqBy }
 
 
 check_radix_sorts = do

@@ -501,3 +501,50 @@ prop_optimal_byIndex n algo =
         map (after V.!) ixs === sortBy (comparing fst) xs
           .&&. counterexample "positions outside the indices changed"
                  (map (after V.!) others == map (before V.!) others)
+
+-- ---------------------------------------------------------------------------
+-- nub
+
+type SortUniqBy = forall s. Comparison Int -> MV.MVector s Int -> ST s (MV.MVector s Int)
+
+-- | The first element of each equivalence class, in the order of the input,
+-- for a comparison that is 'compare' on the given key.
+firstOccurrencesOn :: (Int -> Int) -> [Int] -> [Int]
+firstOccurrencesOn key = go M.empty
+ where
+ go _ [] = []
+ go seen (x:xs)
+   | M.member (key x) seen = go seen xs
+   | otherwise             = x : go (M.insert (key x) () seen) xs
+
+-- | The comparisons nub is tested with, as a name, the comparison, and the
+-- key it compares on (the descending comparison has the same classes as
+-- 'compare').
+nubComparisons :: [(String, Comparison Int, Int -> Int)]
+nubComparisons =
+  [ ("compare",       compare,                id)
+  , ("descending",    flip compare,           id)
+  , ("modulo 7",      comparing (`mod` 7),    (`mod` 7))
+  , ("absolute",      comparing abs,          abs)
+  ]
+
+-- | 'Alg.nubByMut' with the given sortUniqBy keeps the first element of each
+-- equivalence class in input order, and leaves its input unchanged.
+prop_nubByMut :: SortUniqBy -> Vector Int -> Property
+prop_nubByMut alg v = conjoin
+  [ counterexample name $
+      let (r, v') = runST $ do
+            mv <- V.thaw v
+            d  <- Alg.nubByMut alg cmp mv
+            (,) <$> V.freeze d <*> V.freeze mv
+      in V.toList r === firstOccurrencesOn key (V.toList v)
+           .&&. counterexample "input changed" (v' == v)
+  | (name, cmp, key) <- nubComparisons ]
+
+-- | 'Alg.nubBy' keeps the first element of each equivalence class in input
+-- order.
+prop_nubBy :: Vector Int -> Property
+prop_nubBy v = conjoin
+  [ counterexample name $
+      V.toList (Alg.nubBy cmp v) === firstOccurrencesOn key (V.toList v)
+  | (name, cmp, key) <- nubComparisons ]
