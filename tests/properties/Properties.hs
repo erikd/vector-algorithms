@@ -470,3 +470,34 @@ prop_searchAnyBounds search (SearchCase v l u e) =
     modelP (>= e) v l u <= i && i <= modelP (> e) v l u
  where
  i = runSearch v (\a -> search a e l u)
+
+-- ---------------------------------------------------------------------------
+-- Optimal sorts at arbitrary indices
+
+-- | A @sortNByIndex@ function from "Data.Vector.Algorithms.Optimal", taking
+-- its n indices as a list.
+type ByIndexAlgo = forall s. [Int] -> MV.MVector s (Int, Int) -> ST s ()
+
+-- | Placing n elements at distinct positions of a larger vector, given in
+-- any order, and sorting them by index: read back in the order of the
+-- indices, the elements are stably sorted (by their first component), and
+-- every other position is unchanged. This is checked for every permutation
+-- of n distinct keys and every input in the exhaustive stability set.
+prop_optimal_byIndex :: Int -> ByIndexAlgo -> Property
+prop_optimal_byIndex n algo =
+  forAll (choose (n, 20)) $ \len ->
+  forAll (take n <$> shuffle [0 .. len - 1]) $ \ixs ->
+    conjoin [ check len ixs (V.toList xs) | xs <- inputs ]
+ where
+ inputs :: [Vector (Int, Int)]
+ inputs = map (\p -> V.fromList (zip p [0 ..])) (permutations [0 .. n - 1])
+            ++ stability n
+ check len ixs xs =
+   let filler = V.generate len (\i -> (-1, -1 - i))
+       before = filler V.// zip ixs xs
+       after  = modify (algo ixs) before
+       others = [ i | i <- [0 .. len - 1], i `notElem` ixs ]
+   in counterexample ("indices " ++ show ixs ++ ", input " ++ show xs) $
+        map (after V.!) ixs === sortBy (comparing fst) xs
+          .&&. counterexample "positions outside the indices changed"
+                 (map (after V.!) others == map (before V.!) others)
