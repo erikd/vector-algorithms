@@ -1,3 +1,10 @@
+## Version 0.9.1.1 (2026-11-23)
+
+- Bump dependency upper bounds, more tests and CI improvements.
+- Make Radix instances total (mainly to appease the compiler).
+- AmericanFlag: Fix Lexicographic instance for pairs.
+- AmericanFlag: Fix pair ordering for variable-length first components.
+
 ## Version 0.9.1.0 (2025-02-05)
 
 - More inlining for `sort` and `nib` functions.
