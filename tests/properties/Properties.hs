@@ -27,6 +27,9 @@ import Data.Vector.Generic (modify)
 
 import qualified Data.Vector.Generic.Mutable as G
 import qualified Data.Vector.Generic as GV
+import qualified Data.Vector.Primitive as PV
+import qualified Data.Vector.Storable as SV
+import qualified Data.Vector.Unboxed as UV
 
 import Data.Vector.Algorithms.Optimal (Comparison)
 import Data.Vector.Algorithms.Radix (radix, passes, size)
@@ -398,13 +401,13 @@ prop_killer algo correct = forAll (choose (500, 5000)) $ \n ->
               (fromIntegral c <= bound)
 
 -- | The result is the sorted input.
-killerSorted :: Vector Int -> Vector Int -> Property
-killerSorted input r = r === V.fromList (sort (V.toList input))
+resultSorted :: Vector Int -> Vector Int -> Property
+resultSorted input r = r === V.fromList (sort (V.toList input))
 
 -- | The first half of the result holds the smallest half of the input, in
 -- order if @ordered@ is set.
-killerHalf :: Bool -> Vector Int -> Vector Int -> Property
-killerHalf ordered input r =
+resultHalf :: Bool -> Vector Int -> Vector Int -> Property
+resultHalf ordered input r =
   (if ordered then front else sort front) === lo .&&. sort back === hi
  where
  k = V.length input `div` 2
@@ -548,3 +551,64 @@ prop_nubBy v = conjoin
   [ counterexample name $
       V.toList (Alg.nubBy cmp v) === firstOccurrencesOn key (V.toList v)
   | (name, cmp, key) <- nubComparisons ]
+
+-- ---------------------------------------------------------------------------
+-- Other vector types
+--
+-- The algorithms are INLINE and get specialised to each vector type, so
+-- also run them on unboxed, storable and primitive vectors, not just the
+-- boxed vectors used everywhere else.
+
+type GenAlgo = forall s mv. G.MVector mv Int => mv s Int -> ST s ()
+type GenUniqAlgo = forall s mv. G.MVector mv Int => mv s Int -> ST s (mv s Int)
+
+-- | Run an in-place algorithm on the input converted to each of the other
+-- vector types, and check each result with the given property.
+prop_vector_types :: GenAlgo -> (Vector Int -> Vector Int -> Property)
+                  -> Vector Int -> Property
+prop_vector_types algo correct v = conjoin
+  [ counterexample "unboxed"   $ correct v (via (undefined :: UV.Vector Int))
+  , counterexample "storable"  $ correct v (via (undefined :: SV.Vector Int))
+  , counterexample "primitive" $ correct v (via (undefined :: PV.Vector Int))
+  ]
+ where
+ via :: GV.Vector w Int => w Int -> Vector Int
+ via proxy = GV.convert (GV.modify algo (GV.convert v `asTypeOf` proxy))
+
+-- | 'prop_vector_types' for algorithms returning a vector of unique
+-- elements: the result is the sorted distinct elements of the input.
+prop_vector_types_uniq :: GenUniqAlgo -> Vector Int -> Property
+prop_vector_types_uniq algo v = conjoin
+  [ counterexample "unboxed"   $ via (undefined :: UV.Vector Int) === expected
+  , counterexample "storable"  $ via (undefined :: SV.Vector Int) === expected
+  , counterexample "primitive" $ via (undefined :: PV.Vector Int) === expected
+  ]
+ where
+ expected = M.keys (toBag v)
+ via :: GV.Vector w Int => w Int -> [Int]
+ via proxy = runST $ do
+   mv <- GV.thaw (GV.convert v `asTypeOf` proxy)
+   r  <- algo mv
+   GV.toList . (`asTypeOf` proxy) <$> GV.freeze r
+
+-- | A stable sort is stable on unboxed vectors of (key, original index)
+-- pairs.
+prop_stable_unboxed :: (forall s mv. G.MVector mv (Int, Int)
+                          => Comparison (Int, Int) -> mv s (Int, Int) -> ST s ())
+                    -> LargeVec -> Property
+prop_stable_unboxed algo (LargeVec _ v) =
+  UV.toList (GV.modify (algo (comparing fst)) kv)
+    === sortBy (comparing fst) (UV.toList kv)
+ where
+ kv = UV.imap (\i k -> (k, i)) (UV.convert v)
+
+-- | 'Alg.nub' on each of the other vector types keeps the first occurrence
+-- of each element, in input order.
+prop_nub_vector_types :: Vector Int -> Property
+prop_nub_vector_types v = conjoin
+  [ counterexample "unboxed"   $ UV.toList (Alg.nub (UV.convert v)) === expected
+  , counterexample "storable"  $ SV.toList (Alg.nub (SV.convert v)) === expected
+  , counterexample "primitive" $ PV.toList (Alg.nub (PV.convert v)) === expected
+  ]
+ where
+ expected = firstOccurrencesOn id (V.toList v)
