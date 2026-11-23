@@ -105,8 +105,8 @@ prop_partialsort = prop_sized $ \algo k v -> do
       vtail = V.drop k newVec
   prop_sorted vhead
     .&&.
-      -- Every element in the head should be < every element in the tail.
-      if V.null vtail then 1 == 1 else V.maximum vhead <= V.minimum vtail
+      -- Every element in the head should be <= every element in the tail.
+      (V.null vhead || V.null vtail || V.maximum vhead <= V.minimum vtail)
 
 prop_sized_empty :: (Ord e) => (forall s. MV.MVector s e -> Int -> ST s ()) -> Property
 prop_sized_empty algo = prop_empty (flip algo 0) .&&. prop_empty (flip algo 10)
